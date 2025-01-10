@@ -1,0 +1,33 @@
+// src/types/user.types.ts
+export interface IUser {
+    UsuarioID: number;
+    Email: string;
+    Contraseña: string;
+    SaltContraseña: string;
+    Nombres: string;
+    Apellidos: string;
+    NombreUsuario: string;
+    Telefono?: string;
+    FechaNacimiento?: Date;
+    Genero?: string;
+    FechaCreacion: Date;
+    FechaActualizacion?: Date;
+    UltimoAcceso?: Date;
+    UltimoCambioContraseña?: Date;
+    IntentosFallidos: number;
+    BloqueoHasta?: Date;
+    EmailConfirmado: boolean;
+    TelefonoConfirmado: boolean;
+    DosFactoresHabilitado: boolean;
+    Activo: boolean;
+    Estado: string;
+    IdiomaPreferido: string;
+    ZonaHoraria: string;
+    TokenVerificacion?: string;
+    TokenRecuperacion?: string;
+    VenceTokenRecuperacion?: Date;
+    AceptoTerminos: boolean;
+    FechaAceptacionTerminos?: Date;
+    FechaEliminacion?: Date;
+    Eliminado: boolean;
+  }
