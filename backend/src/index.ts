@@ -5,6 +5,8 @@ import path from 'path';
 import { db, connectDB } from '@/config/database';
 import authRoutes from '@/routes/auth.routes';
 import { setupRolesYPermisos } from '@/config/initialSetup';
+import userRoutes from './routes/user.routes';
+import roleRoutes from './routes/role.routes';
 
 // Cargar variables de entorno desde el archivo .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -20,7 +22,12 @@ if (process.env.NODE_ENV === 'development') {
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/users', userRoutes);
+app.use('/api', roleRoutes);
 app.use('/api/auth', authRoutes);
+
+
 app.use(express.urlencoded({ extended: true }));
 
 // Ruta simple para verificar que el servidor funciona

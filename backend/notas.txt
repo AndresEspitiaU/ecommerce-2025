@@ -1,0 +1,51 @@
+SELECT * FROM Usuarios
+SELECT * FROM Roles
+SELECT * FROM Permisos
+SELECT * FROM RolesPermisos
+SELECT * FROM UsuariosRoles
+
+DELETE UsuariosRoles
+
+SELECT DISTINCT p.*
+FROM Permisos p
+INNER JOIN RolesPermisos rp ON p.PermisoID = rp.PermisoID
+INNER JOIN UsuariosRoles ur ON rp.RolID = ur.RolID
+WHERE ur.UsuarioID = 1
+AND ur.Activo = 1
+AND (ur.FechaExpiracion IS NULL OR ur.FechaExpiracion > GETDATE())
+AND p.Activo = 1;
+
+SELECT r.*
+FROM Roles r
+INNER JOIN UsuariosRoles ur ON r.RolID = ur.RolID
+WHERE ur.UsuarioID = 1
+AND ur.Activo = 1
+AND (ur.FechaExpiracion IS NULL OR ur.FechaExpiracion > GETDATE())
+AND r.Activo = 1;
+
+-- Variables
+DECLARE @UsuarioID INT = 1; -- ID del usuario al que deseas asignar el rol
+DECLARE @RolNombre NVARCHAR(50) = 'ADMIN'; -- Nombre del rol que deseas asignar
+
+-- Verificar si el rol existe
+DECLARE @RolID INT;
+SELECT @RolID = RolID FROM Roles WHERE Nombre = @RolNombre;
+
+IF @RolID IS NULL
+BEGIN
+    PRINT 'El rol especificado no existe.';
+    RETURN;
+END
+
+-- Verificar si el usuario ya tiene asignado este rol
+IF EXISTS (SELECT 1 FROM UsuariosRoles WHERE UsuarioID = @UsuarioID AND RolID = @RolID AND Activo = 1)
+BEGIN
+    PRINT 'El usuario ya tiene asignado este rol.';
+    RETURN;
+END
+
+-- Insertar el rol al usuario
+INSERT INTO UsuariosRoles (UsuarioID, RolID, Activo)
+VALUES (@UsuarioID, @RolID, 1);
+
+PRINT 'Rol asignado al usuario correctamente.';

@@ -1,7 +1,30 @@
 // src/config/initialSetup.ts
 import { RoleService } from '../services/role.service';
+import { db } from '@/config/database';
 
-export const rolesBase = [
+// Definir los tipos
+type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES';
+
+interface Permiso {
+  nombre: string;
+  codigo: string;
+  descripcion?: string;
+  modulo: ModuloPermiso;
+}
+
+interface PermisosConfig {
+  PRODUCTOS: Permiso[];
+  PEDIDOS: Permiso[];
+  USUARIOS: Permiso[];
+  CLIENTES: Permiso[];
+}
+
+interface RolBase {
+  nombre: string;
+  descripcion: string;
+}
+
+export const rolesBase: RolBase[] = [
   {
     nombre: "SUPER_ADMIN",
     descripcion: "Control total del sistema"
@@ -22,18 +45,7 @@ export const rolesBase = [
     nombre: "SOPORTE",
     descripcion: "Atención al cliente"
   }
-] as const;
-
-// Definir interfaces para los tipos
-interface Permiso {
-  nombre: string;
-  codigo: string;
-  modulo: string;
-}
-
-type ModulosPermisos = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES';
-
-type PermisosConfig = Record<ModulosPermisos, Permiso[]>;
+];
 
 export const permisos: PermisosConfig = {
   PRODUCTOS: [
@@ -46,86 +58,128 @@ export const permisos: PermisosConfig = {
   PEDIDOS: [
     { nombre: "Ver Pedidos", codigo: "READ_ORDERS", modulo: "PEDIDOS" },
     { nombre: "Crear Pedidos", codigo: "CREATE_ORDERS", modulo: "PEDIDOS" },
-    { nombre: "Actualizar Pedidos", codigo: "UPDATE_ORDERS", modulo: "PEDIDOS" },
-    { nombre: "Cancelar Pedidos", codigo: "CANCEL_ORDERS", modulo: "PEDIDOS" },
-    { nombre: "Gestionar Devoluciones", codigo: "MANAGE_RETURNS", modulo: "PEDIDOS" }
+    { nombre: "Editar Pedidos", codigo: "UPDATE_ORDERS", modulo: "PEDIDOS" },
+    { nombre: "Eliminar Pedidos", codigo: "DELETE_ORDERS", modulo: "PEDIDOS" }
   ],
   USUARIOS: [
     { nombre: "Ver Usuarios", codigo: "READ_USERS", modulo: "USUARIOS" },
     { nombre: "Crear Usuarios", codigo: "CREATE_USERS", modulo: "USUARIOS" },
     { nombre: "Editar Usuarios", codigo: "UPDATE_USERS", modulo: "USUARIOS" },
-    { nombre: "Eliminar Usuarios", codigo: "DELETE_USERS", modulo: "USUARIOS" },
-    { nombre: "Gestionar Roles", codigo: "MANAGE_ROLES", modulo: "USUARIOS" }
+    { nombre: "Eliminar Usuarios", codigo: "DELETE_USERS", modulo: "USUARIOS" }
   ],
   CLIENTES: [
-    { nombre: "Ver Perfil", codigo: "READ_PROFILE", modulo: "CLIENTES" },
-    { nombre: "Editar Perfil", codigo: "UPDATE_PROFILE", modulo: "CLIENTES" },
-    { nombre: "Ver Historial", codigo: "VIEW_HISTORY", modulo: "CLIENTES" },
-    { nombre: "Gestionar Carrito", codigo: "MANAGE_CART", modulo: "CLIENTES" }
+    { nombre: "Ver Clientes", codigo: "READ_CLIENTS", modulo: "CLIENTES" },
+    { nombre: "Crear Clientes", codigo: "CREATE_CLIENTS", modulo: "CLIENTES" },
+    { nombre: "Editar Clientes", codigo: "UPDATE_CLIENTS", modulo: "CLIENTES" },
+    { nombre: "Eliminar Clientes", codigo: "DELETE_CLIENTS", modulo: "CLIENTES" }
   ]
 };
 
 export const setupRolesYPermisos = async () => {
   try {
     // Crear roles base
+    const rolesCreados = new Map<string, number>();
     for (const rol of rolesBase) {
-      await RoleService.createRole(rol);
+      try {
+        // Verificar si el rol ya existe
+        const existingRole = await db.query<{ nombre: string }>(`
+          SELECT nombre 
+          FROM Roles 
+          WHERE nombre = @nombre
+        `, { nombre: rol.nombre });
+
+        if (existingRole.length === 0) {
+          // Insertar el rol si no existe
+          const rolCreado = await RoleService.createRole(rol);
+          rolesCreados.set(rol.nombre, rolCreado.RolID);
+          console.log(`✅ Rol ${rol.nombre} creado correctamente`);
+        } else {
+          console.log(`Rol ${rol.nombre} ya existe`);
+        }
+      } catch (error) {
+        console.error(`Error creando rol ${rol.nombre}:`, error);
+      }
     }
 
     // Crear permisos
-    const modulosPermisos = Object.keys(permisos) as ModulosPermisos[];
-    for (const modulo of modulosPermisos) {
+    const permisosCreados = new Map<string, number>();
+    const modulos = Object.keys(permisos) as ModuloPermiso[];
+    
+    for (const modulo of modulos) {
       for (const permiso of permisos[modulo]) {
-        await RoleService.createPermission(permiso);
+        try {
+          // Verificar si el permiso ya existe
+          const existingPermission = await db.query<{ codigo: string }>(`
+            SELECT codigo 
+            FROM Permisos 
+            WHERE codigo = @codigo
+          `, { codigo: permiso.codigo });
+
+          if (existingPermission.length === 0) {
+            // Insertar el permiso si no existe
+            const permisoCreado = await RoleService.createPermission(permiso);
+            permisosCreados.set(permiso.codigo, permisoCreado.PermisoID);
+            console.log(`✅ Permiso ${permiso.codigo} creado correctamente`);
+          } else {
+            console.log(`Permiso ${permiso.codigo} ya existe`);
+          }
+        } catch (error) {
+          console.error(`Error creando permiso ${permiso.codigo}:`, error);
+        }
       }
     }
+
+    // Definir las asignaciones de permisos por rol
+    type RolesPermisos = {
+      [key: string]: string[];
+    };
+
+    const rolesPermisos: RolesPermisos = {
+      SUPER_ADMIN: [
+        "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
+        "READ_ORDERS", "CREATE_ORDERS", "UPDATE_ORDERS", "DELETE_ORDERS",
+        "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS",
+        "READ_CLIENTS", "CREATE_CLIENTS", "UPDATE_CLIENTS", "DELETE_CLIENTS"
+      ],
+      ADMIN: [
+        "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
+        "READ_ORDERS", "CREATE_ORDERS", "UPDATE_ORDERS", "DELETE_ORDERS",
+        "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS"
+      ],
+      VENDEDOR: [
+        "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
+        "READ_ORDERS", "CREATE_ORDERS", "UPDATE_ORDERS", "DELETE_ORDERS"
+      ],
+      CLIENTE: [
+        "READ_PRODUCTS", "READ_ORDERS", "CREATE_ORDERS"
+      ],
+      SOPORTE: [
+        "READ_CLIENTS", "UPDATE_CLIENTS"
+      ]
+    };
 
     // Asignar permisos a roles
-    await setupPermisosRoles();
-
-    console.log('✅ Roles y permisos iniciales creados correctamente');
-  } catch (error) {
-    console.error('❌ Error al crear roles y permisos iniciales:', error);
-  }
-};
-
-// Definir tipo para el mapeo de roles a permisos
-type RolPermisos = Record<(typeof rolesBase)[number]['nombre'], string[]>;
-
-const setupPermisosRoles = async () => {
-  // Definir los permisos para cada rol
-  const rolPermisos: RolPermisos = {
-    SUPER_ADMIN: Object.values(permisos).flat().map(p => p.codigo),
-    ADMIN: [
-      "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS",
-      "READ_ORDERS", "UPDATE_ORDERS", "CANCEL_ORDERS",
-      "READ_USERS", "UPDATE_USERS"
-    ],
-    VENDEDOR: [
-      "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "MANAGE_STOCK",
-      "READ_ORDERS", "UPDATE_ORDERS"
-    ],
-    SOPORTE: [
-      "READ_PRODUCTS", "READ_ORDERS", "UPDATE_ORDERS", "MANAGE_RETURNS"
-    ],
-    CLIENTE: [
-      "READ_PROFILE", "UPDATE_PROFILE", "VIEW_HISTORY", "MANAGE_CART"
-    ]
-  };
-
-  // Asignar los permisos a cada rol
-  for (const [rolNombre, codigosPermisos] of Object.entries(rolPermisos)) {
-    const roles = await RoleService.getRoles();
-    const rol = roles.find(r => r.Nombre === rolNombre);
-
-    if (rol) {
-      for (const codigo of codigosPermisos) {
-        await RoleService.assignPermissionToRole({
-          rolId: rol.RolID,
-          permisoId: parseInt(codigo), // Asegúrate de que el permisoId sea un número
-          asignadoPor: 1 // ID del usuario administrador o sistema
-        });
+    for (const [rol, permisos] of Object.entries(rolesPermisos)) {
+      const rolID = rolesCreados.get(rol);
+      if (rolID) {
+        for (const permiso of permisos) {
+          const permisoID = permisosCreados.get(permiso);
+          if (permisoID) {
+            try {
+              await RoleService.assignPermissionToRole(rolID, permisoID);
+              console.log(`✅ Permiso ${permiso} asignado al rol ${rol}`);
+            } catch (error) {
+              console.error(`Error asignando permiso ${permiso} al rol ${rol}:`, error);
+            }
+          }
+        }
       }
     }
+
+  } catch (error) {
+    console.error('Error en setupRolesYPermisos:', error);
   }
 };
+
+// Llamar a la función de configuración al iniciar la aplicación
+setupRolesYPermisos().catch(console.error);
