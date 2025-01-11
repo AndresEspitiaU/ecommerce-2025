@@ -1,6 +1,7 @@
 // src/controllers/auth.controller.ts
-import type { Request, Response } from 'express';
-import { AuthService } from '@/services/auth.service'; // Cambiado para usar importación nombrada
+import type { Request, Response, NextFunction } from 'express';
+import { AuthService } from '@/services/auth.service';
+import type { RequestHandler } from 'express';
 
 interface RegisterRequest {
   email: string;
@@ -13,10 +14,18 @@ interface RegisterRequest {
   genero?: string;
 }
 
-export class AuthController {
+interface LoginRequest {
+  email: string;
+  password: string;
+}
 
+export class AuthController {
   // METODO PARA REGISTRAR UN USUARIO
-  static async register(req: Request<any, any, RegisterRequest>, res: Response) {
+  static register: RequestHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { 
         email, 
@@ -27,12 +36,13 @@ export class AuthController {
         telefono,
         fechaNacimiento,
         genero 
-      } = req.body;
+      } = req.body as RegisterRequest;
 
       if (!email || !password || !nombres || !apellidos || !nombreUsuario) {
-        return res.status(400).json({
+        res.status(400).json({
           message: 'Faltan campos requeridos'
         });
+        return;
       }
 
       const result = await AuthService.register({
@@ -46,36 +56,38 @@ export class AuthController {
         genero
       });
 
-      return res.status(201).json(result);
+      res.status(201).json(result);
     } catch (error) {
       console.error('Error en registro:', error);
-      return res.status(400).json({
+      res.status(400).json({
         message: error instanceof Error ? error.message : 'Error en registro'
       });
     }
-  }
+  };
 
   // METODO PARA INICIAR SESION
-  static async login(req: Request, res: Response) {
+  static login: RequestHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      const { email, password } = req.body;
+      const { email, password } = req.body as LoginRequest;
 
       if (!email || !password) {
-        return res.status(400).json({
+        res.status(400).json({
           message: 'Faltan campos requeridos'
         });
+        return;
       }
 
       const result = await AuthService.login(email, password);
-
-      return res.json(result);
+      res.json(result);
     } catch (error) {
       console.error('Error en login:', error);
-      return res.status(400).json({
+      res.status(400).json({
         message: error instanceof Error ? error.message : 'Error en login'
       });
     }
-  }
-
-  
+  };
 }

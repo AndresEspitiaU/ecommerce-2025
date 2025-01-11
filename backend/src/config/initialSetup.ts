@@ -3,7 +3,7 @@ import { RoleService } from '../services/role.service';
 import { db } from '@/config/database';
 
 // Definir los tipos
-type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES';
+type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS';
 
 interface Permiso {
   nombre: string;
@@ -14,6 +14,7 @@ interface Permiso {
 
 interface PermisosConfig {
   PRODUCTOS: Permiso[];
+  CATEGORIAS: Permiso[];
   PEDIDOS: Permiso[];
   USUARIOS: Permiso[];
   CLIENTES: Permiso[];
@@ -55,6 +56,9 @@ export const permisos: PermisosConfig = {
     { nombre: "Eliminar Productos", codigo: "DELETE_PRODUCTS", modulo: "PRODUCTOS" },
     { nombre: "Gestionar Stock", codigo: "MANAGE_STOCK", modulo: "PRODUCTOS" }
   ],
+  CATEGORIAS: [
+    { nombre: "Eliminar Categorías", codigo: "DELETE_CATEGORIES", modulo: "CATEGORIAS" }
+  ],
   PEDIDOS: [
     { nombre: "Ver Pedidos", codigo: "READ_ORDERS", modulo: "PEDIDOS" },
     { nombre: "Crear Pedidos", codigo: "CREATE_ORDERS", modulo: "PEDIDOS" },
@@ -94,7 +98,7 @@ export const setupRolesYPermisos = async () => {
           rolesCreados.set(rol.nombre, rolCreado.RolID);
           console.log(`✅ Rol ${rol.nombre} creado correctamente`);
         } else {
-          console.log(`Rol ${rol.nombre} ya existe`);
+          // console.log(`Rol ${rol.nombre} ya existe`);
         }
       } catch (error) {
         console.error(`Error creando rol ${rol.nombre}:`, error);
@@ -104,14 +108,14 @@ export const setupRolesYPermisos = async () => {
     // Crear permisos
     const permisosCreados = new Map<string, number>();
     const modulos = Object.keys(permisos) as ModuloPermiso[];
-    
+
     for (const modulo of modulos) {
       for (const permiso of permisos[modulo]) {
         try {
           // Verificar si el permiso ya existe
           const existingPermission = await db.query<{ codigo: string }>(`
-            SELECT codigo 
-            FROM Permisos 
+            SELECT codigo
+            FROM Permisos
             WHERE codigo = @codigo
           `, { codigo: permiso.codigo });
 
@@ -121,7 +125,7 @@ export const setupRolesYPermisos = async () => {
             permisosCreados.set(permiso.codigo, permisoCreado.PermisoID);
             console.log(`✅ Permiso ${permiso.codigo} creado correctamente`);
           } else {
-            console.log(`Permiso ${permiso.codigo} ya existe`);
+            // console.log(`Permiso ${permiso.codigo} ya existe`);
           }
         } catch (error) {
           console.error(`Error creando permiso ${permiso.codigo}:`, error);
@@ -139,7 +143,7 @@ export const setupRolesYPermisos = async () => {
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
         "READ_ORDERS", "CREATE_ORDERS", "UPDATE_ORDERS", "DELETE_ORDERS",
         "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS",
-        "READ_CLIENTS", "CREATE_CLIENTS", "UPDATE_CLIENTS", "DELETE_CLIENTS"
+        "READ_CLIENTS", "CREATE_CLIENTS", "UPDATE_CLIENTS", "DELETE_CLIENTS", "DELETE_CATEGORIES"
       ],
       ADMIN: [
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",

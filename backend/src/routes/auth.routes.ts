@@ -1,8 +1,8 @@
 // src/routes/auth.routes.ts
 import { Router } from 'express';
+import { authMiddleware, hasRole } from '@/middleware/auth.middleware';
 import { AuthController } from '@/controllers/auth.controller';
 import { RoleController } from '@/controllers/role.controller';
-import { authMiddleware, hasRole } from '@/middleware/auth.middleware';
 
 const router = Router();
 
@@ -12,15 +12,17 @@ router.post('/login', AuthController.login);
 
 // Rutas protegidas de roles
 router.post('/roles', 
-  authMiddleware, 
-  hasRole(['SUPER_ADMIN']), 
+  authMiddleware,
+  hasRole(['SUPER_ADMIN']),
   RoleController.createRole
 );
 
 router.get('/roles', 
-  authMiddleware, 
-  hasRole(['SUPER_ADMIN', 'ADMIN']), 
+  authMiddleware,
+  hasRole(['SUPER_ADMIN', 'ADMIN']),
   RoleController.getRoles
 );
+
+// ... resto de las rutas
 
 export default router;

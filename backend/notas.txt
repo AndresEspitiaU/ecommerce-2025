@@ -51,3 +51,131 @@ INSERT INTO UsuariosRoles (UsuarioID, RolID, Activo)
 VALUES (@UsuarioID, @RolID, 1);
 
 PRINT 'Rol asignado al usuario correctamente.';
+
+
+SELECT * FROM Usuarios
+SELECT * FROM Roles
+SELECT * FROM Permisos
+SELECT * FROM RolesPermisos
+SELECT * FROM UsuariosRoles
+
+SELECT * FROM Categorias
+SELECT * FROM SubCategorias
+
+
+
+
+SELECT * FROM Permisos WHERE Codigo = 'DELETE_CATEGORIES';
+SELECT r.Nombre AS Rol, p.Nombre AS Permiso
+FROM RolesPermisos rp
+JOIN Roles r ON rp.RolID = r.RolID
+JOIN Permisos p ON rp.PermisoID = p.PermisoID
+WHERE p.Codigo = 'DELETE_CATEGORIES';
+
+
+DBCC DROPCLEANBUFFERS; -- Limpia el caché de datos
+SELECT CategoriaID, Nombre, Activo
+FROM Categorias
+WHERE CategoriaID = 8;
+
+EXEC sp_help 'Categorias';
+
+SELECT CategoriaID, Nombre, Activo
+FROM Categorias
+WHERE Activo = 1; -- Solo categorías activas
+
+DBCC OPENTRAN;
+
+
+DECLARE @UsuarioID INT = 3; -- Reemplaza con el ID del usuario que quieres verificar
+DECLARE @PermisoCodigo NVARCHAR(50) = 'DELETE_CATEGORIES'; -- El permiso a verificar
+
+-- Verificar si el usuario tiene el permiso directamente o a través de su rol
+SELECT 
+    CASE 
+        WHEN COUNT(*) > 0 THEN 'El usuario tiene permiso para eliminar categorías'
+        ELSE 'El usuario NO tiene permiso para eliminar categorías'
+    END AS Resultado
+FROM 
+    UsuariosRoles UR
+INNER JOIN RolesPermisos RP ON UR.RolID = RP.RolID
+INNER JOIN Permisos P ON RP.PermisoID = P.PermisoID
+WHERE 
+    UR.UsuarioID = @UsuarioID
+    AND P.Codigo = @PermisoCodigo
+    AND UR.Activo = 1 -- El usuario debe tener el rol activo
+    AND P.Activo = 1; -- El permiso debe estar activo
+
+
+SELECT * FROM Categorias WHERE CategoriaID = 8;
+
+
+DELETE UsuariosRoles
+
+-- INSERTAR UN ROL EN UN USUARIO
+INSERT INTO UsuariosRoles(usuarioID, RolID) VALUES (1, (SELECT RolID FROM Roles WHERE Nombre = 'SUPER_ADMIN'));
+
+-- Variables para configurar el usuario
+DECLARE @UsuarioID INT = 1; -- Cambia esto por el ID del usuario al que quieres asignar
+DECLARE @RolID INT;
+DECLARE @AsignadoPor INT = 1; -- ID del usuario que hace la asignación (normalmente un admin)
+
+-- Ejemplo para asignar el rol SUPER_ADMIN
+-- Obtener el ID del rol
+SELECT @RolID = RolID FROM Roles WHERE Nombre = 'SUPER_ADMIN';
+
+-- Verificar si ya tiene el rol asignado
+IF NOT EXISTS (
+    SELECT 1 
+    FROM UsuariosRoles 
+    WHERE UsuarioID = @UsuarioID 
+    AND RolID = @RolID 
+    AND Activo = 1
+)
+BEGIN
+    -- Asignar el rol
+    INSERT INTO UsuariosRoles (
+        UsuarioID,
+        RolID,
+        FechaAsignacion,
+        AsignadoPor,
+        Activo
+    )
+    VALUES (
+        @UsuarioID,
+        @RolID,
+        GETDATE(),
+        @AsignadoPor,
+        1
+    );
+    
+    PRINT 'Rol asignado exitosamente';
+END
+ELSE
+BEGIN
+    PRINT 'El usuario ya tiene este rol asignado';
+END
+
+DECLARE @UsuarioID INT = 3; -- Cambia esto por el ID del usuario al que quieres asignar
+DECLARE @RolID INT;
+DECLARE @AsignadoPor INT = 1; -- ID del usuario que hace la asignación (normalmente un admin)
+
+-- Verificar los roles asignados
+SELECT r.Nombre as RolNombre, r.Descripcion as RolDescripcion
+FROM Roles r
+INNER JOIN UsuariosRoles ur ON r.RolID = ur.RolID
+WHERE ur.UsuarioID = @UsuarioID AND ur.Activo = 1;
+
+DECLARE @UsuarioID INT = 3; -- Cambia esto por el ID del usuario al que quieres asignar
+DECLARE @RolID INT;
+DECLARE @AsignadoPor INT = 1;
+
+-- Verificar los permisos que tiene a través de sus roles
+SELECT DISTINCT p.Codigo, p.Nombre as PermisoNombre, p.Modulo
+FROM Permisos p
+INNER JOIN RolesPermisos rp ON p.PermisoID = rp.PermisoID
+INNER JOIN UsuariosRoles ur ON rp.RolID = ur.RolID
+WHERE ur.UsuarioID = @UsuarioID 
+AND ur.Activo = 1 
+AND p.Activo = 1
+ORDER BY p.Modulo, p.Nombre;
