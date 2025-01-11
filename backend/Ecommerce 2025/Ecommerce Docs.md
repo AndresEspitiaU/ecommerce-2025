@@ -1,0 +1,25 @@
+- 📄 [[README]] (introducción al proyecto)
+-  [[Guía de Desarrollo del Proyecto de E-commerce]]
+- [[To-Do Desarrollo del Backend]]
+- 📂 [[Database]]
+    - 📄 [[Schema.md]] (estructura de la base de datos)
+    - 📄 [[Tablas de la Base de Datos]] (detalles sobre las tablas y relaciones)
+    - 📄 `SampleData.md` (datos iniciales insertados)
+- 📂 [[Backend]]
+    - 📄 `Overview.md` (visión general del backend con Bun)
+    - 📄 `APIEndpoints.md` (endpoints disponibles en el backend)
+    - 📄 `Authentication.md` (detalles sobre la autenticación y roles)
+- 📂 [[Features]]
+    - 📄 `Users.md` (gestión de usuarios, roles y permisos)
+    - 📄 `Products.md` (gestión de productos, variantes y categorías)
+    - 📄 `Orders.md` (flujo de pedidos y estados)
+    - 📄 `Cart.md` (funcionalidad del carrito de compras)
+    - 📄 `Coupons.md` (gestión de cupones)
+    - 📄 `Reviews.md` (reseñas de productos y moderación)
+- 📂 `Development`
+    - 📄 `Setup.md` (instrucciones para configurar el proyecto)
+    - 📄 `Testing.md` (detalles sobre pruebas)
+    - 📄 `Deployment.md` (proceso para desplegar el proyecto)
+- 📂 `Diagrams`
+    - 📄 `ERDiagram.md` (diagrama entidad-relación)
+    - 📄 `Flowcharts.md` (diagramas de flujo del sistema)
