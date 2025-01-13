@@ -6,29 +6,37 @@ import {
   withHashLocation,
   withInMemoryScrolling,
   withRouterConfig,
-  withViewTransitions
+  withViewTransitions,
 } from '@angular/router';
 
-import { DropdownModule, SidebarModule } from '@coreui/angular';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { ButtonModule, DropdownModule, SidebarModule } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { routes } from './app.routes';
+import { AuthInterceptor } from './core/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes,
+    provideRouter(
+      routes,
       withRouterConfig({
-        onSameUrlNavigation: 'reload'
+        onSameUrlNavigation: 'reload',
       }),
       withInMemoryScrolling({
         scrollPositionRestoration: 'top',
-        anchorScrolling: 'enabled'
+        anchorScrolling: 'enabled',
       }),
       withEnabledBlockingInitialNavigation(),
       withViewTransitions(),
       withHashLocation()
     ),
-    importProvidersFrom(SidebarModule, DropdownModule),
+    importProvidersFrom(SidebarModule, DropdownModule, ButtonModule, HttpClientModule),
     IconSetService,
-    provideAnimations()
-  ]
+    provideAnimations(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
+  ],
 };

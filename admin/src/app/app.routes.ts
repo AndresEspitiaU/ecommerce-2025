@@ -1,15 +1,24 @@
 import { Routes } from '@angular/router';
 import { DefaultLayoutComponent } from './layout';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dashboard',
-    pathMatch: 'full'
+    redirectTo: 'login', 
+    pathMatch: 'full' 
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./views/pages/login/login.component').then(m => m.LoginComponent),
+    data: {
+      title: 'Login Page'
+    }
   },
   {
     path: '',
     component: DefaultLayoutComponent,
+    canActivate: [AuthGuard],
     data: {
       title: 'Home'
     },
@@ -68,13 +77,6 @@ export const routes: Routes = [
     loadComponent: () => import('./views/pages/page500/page500.component').then(m => m.Page500Component),
     data: {
       title: 'Page 500'
-    }
-  },
-  {
-    path: 'login',
-    loadComponent: () => import('./views/pages/login/login.component').then(m => m.LoginComponent),
-    data: {
-      title: 'Login Page'
     }
   },
   {

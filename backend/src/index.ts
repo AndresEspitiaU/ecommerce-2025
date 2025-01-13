@@ -24,6 +24,14 @@ if (process.env.NODE_ENV === 'development') {
   setupRolesYPermisos().catch(console.error);
 }
 
+app.use(
+  cors({
+    origin: ['http://localhost:4200'], // Cambia esto según tu dominio en producción
+    methods: 'GET,POST,PUT,DELETE',
+    credentials: true,
+  })
+);
+
 
 // Middleware
 app.use(cors());
