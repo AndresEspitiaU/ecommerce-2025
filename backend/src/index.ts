@@ -8,6 +8,11 @@ import { setupRolesYPermisos } from '@/config/initialSetup';
 import userRoutes from '@/routes/user.routes';
 import roleRoutes from '@/routes/role.routes';
 import categoryRoutes from '@/routes/category.routes';
+import subcategoryRoutes from '@/routes/subcategory.routes';
+import marcaRoutes from '@/routes/marca.routes';
+import colorRoutes from '@/routes/color.routes';
+import cuponRoutes from '@/routes/cupon.routes';
+import tallaRoutes from '@/routes/talla.routes';
 
 // Cargar variables de entorno desde el archivo .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -28,6 +33,11 @@ app.use('/api/users', userRoutes);
 app.use('/api', roleRoutes);
 app.use('/api/auth', authRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use('/api/subcategories', subcategoryRoutes);
+app.use('/api/marcas', marcaRoutes);
+app.use('/api/colores', colorRoutes);
+app.use('/api/cupones', cuponRoutes);
+app.use('/api/tallas', tallaRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -71,6 +81,7 @@ const startServer = async () => {
     
     // Si la conexión es exitosa, iniciamos el servidor
     app.listen(PORT, () => {
+      console.log(`Conectando a la base de datos: ${process.env.DB_NAME}`);
       console.log('\n=================================');
       console.log(`🚀 Servidor iniciado en puerto ${PORT}`);
       console.log(`📝 Verificar servidor: http://localhost:${PORT}/api/health`);
