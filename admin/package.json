@@ -36,6 +36,8 @@
     "@coreui/icons": "^3.0.1",
     "@coreui/icons-angular": "~5.3.4",
     "@coreui/utils": "^2.0.2",
+    "@kurkle/color": "^0.3.4",
+    "@popperjs/core": "^2.11.8",
     "chart.js": "^4.4.7",
     "lodash-es": "^4.17.21",
     "ngx-scrollbar": "^13.0.3",
