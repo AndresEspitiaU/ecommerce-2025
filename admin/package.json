@@ -39,9 +39,11 @@
     "@kurkle/color": "^0.3.4",
     "@popperjs/core": "^2.11.8",
     "chart.js": "^4.4.7",
+    "jwt-decode": "^4.0.0",
     "lodash-es": "^4.17.21",
     "ngx-scrollbar": "^13.0.3",
     "rxjs": "~7.8.1",
+    "sweetalert2": "^11.15.10",
     "tslib": "^2.8.1",
     "zone.js": "~0.15.0"
   },

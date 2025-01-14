@@ -1,5 +1,4 @@
 // src/controllers/role.controller.ts
-// src/controllers/role.controller.ts
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import { RoleService } from '@/services/role.service';
 
@@ -26,6 +25,7 @@ interface AssignRolesRequest {
 
 export class RoleController {
   
+  // ASIGNAR ROLES A UN USUARIO
   static assignRolesToUser: RequestHandler = async (
     req: Request<{}, {}, AssignRolesRequest>,
     res: Response,
@@ -57,6 +57,7 @@ export class RoleController {
       });
     }
   };
+
 
   // METODO PARA CREAR UN ROL
   static createRole: RequestHandler = async (
@@ -129,14 +130,21 @@ export class RoleController {
   ): Promise<void> => {
     try {
       const { id } = req.params;
-      await RoleService.deleteRole(Number(id));
+      const affectedRows = await RoleService.deleteRole(Number(id));
+
+      if (affectedRows === 0) {
+        res.status(404).json({ message: 'Rol no encontrado' });
+        return;
+      }
+
       res.json({ message: 'Rol eliminado correctamente' });
     } catch (error) {
-      res.status(400).json({
+      res.status(500).json({
         message: error instanceof Error ? error.message : 'Error al eliminar el rol'
       });
     }
   };
+
 
   // METODO PARA CREAR UN PERMISO
   static createPermission: RequestHandler = async (

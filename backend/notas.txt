@@ -179,3 +179,18 @@ WHERE ur.UsuarioID = @UsuarioID
 AND ur.Activo = 1 
 AND p.Activo = 1
 ORDER BY p.Modulo, p.Nombre;
+
+
+
+--------------------------------------------------------------------------------------------------------------
+
+
+Usuario 3: Superadmin@admin.com 
+Roles: SUPER_ADMIN y ADMIN
+Permisos: 
+
+
+
+
+
+

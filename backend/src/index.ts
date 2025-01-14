@@ -13,6 +13,7 @@ import marcaRoutes from '@/routes/marca.routes';
 import colorRoutes from '@/routes/color.routes';
 import cuponRoutes from '@/routes/cupon.routes';
 import tallaRoutes from '@/routes/talla.routes';
+import permissionsRoutes from './routes/permissions.routes';
 
 // Cargar variables de entorno desde el archivo .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -46,6 +47,7 @@ app.use('/api/marcas', marcaRoutes);
 app.use('/api/colores', colorRoutes);
 app.use('/api/cupones', cuponRoutes);
 app.use('/api/tallas', tallaRoutes);
+app.use('/api/permissions', permissionsRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 

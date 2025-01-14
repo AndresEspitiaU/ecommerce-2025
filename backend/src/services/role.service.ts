@@ -1,6 +1,7 @@
 // src/services/role.service.ts
 import { db } from '@/config/database';
 import type { IRole, IPermiso, IRolPermiso, IUsuarioRol } from '@/types/role.types';
+import sql from 'mssql';
 
 export class RoleService {
   // Roles
@@ -28,7 +29,7 @@ export class RoleService {
         ${!includeInactive ? 'WHERE Activo = 1' : ''}
         ORDER BY Nombre
       `);
-
+      // console.log('Roles obtenidos del backend:', roles);
       return roles;
     } catch (error) {
       throw error;
@@ -48,26 +49,36 @@ export class RoleService {
       `, {
         RolID: rolId,
         Nombre: rolData.nombre,
-        Descripcion: rolData.descripcion
+        Descripcion: rolData.descripcion,
       });
-
-      return result[0];
+  
+      return result[0] || null;
     } catch (error) {
       throw error;
     }
   }
+  
+// Servicio: RoleService
 
-  static async deleteRole(rolId: number) {
-    try {
-      await db.query(`
-        UPDATE Roles
-        SET Activo = 0
-        WHERE RolID = @RolID
-      `, { RolID: rolId });
-    } catch (error) {
-      throw error;
-    }
+static async deleteRole(rolId: number): Promise<number> {
+  try {
+    const pool = await db.getConnection();
+    const request = pool.request();
+    request.input('RolID', sql.Int, rolId);
+
+    const result = await request.query(`
+      DELETE FROM Roles
+      WHERE RolID = @RolID
+    `);
+
+    return result.rowsAffected[0] || 0; // Devuelve el número de filas afectadas
+  } catch (error) {
+    console.error('Error al eliminar el rol:', error);
+    throw new Error('No se pudo eliminar el rol');
   }
+}
+
+
 
   // Permisos
   static async createPermission(permisoData: {

@@ -3,7 +3,7 @@ import { RoleService } from '../services/role.service';
 import { db } from '@/config/database';
 
 // Definir los tipos
-type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS';
+type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS' | 'PERMISOS';
 
 interface Permiso {
   nombre: string;
@@ -18,6 +18,7 @@ interface PermisosConfig {
   PEDIDOS: Permiso[];
   USUARIOS: Permiso[];
   CLIENTES: Permiso[];
+  PERMISOS: Permiso[];
 }
 
 interface RolBase {
@@ -76,6 +77,13 @@ export const permisos: PermisosConfig = {
     { nombre: "Crear Clientes", codigo: "CREATE_CLIENTS", modulo: "CLIENTES" },
     { nombre: "Editar Clientes", codigo: "UPDATE_CLIENTS", modulo: "CLIENTES" },
     { nombre: "Eliminar Clientes", codigo: "DELETE_CLIENTS", modulo: "CLIENTES" }
+  ],
+  PERMISOS: [ 
+    { nombre: "Gestionar Permisos", codigo: "MANAGE_PERMISSIONS", modulo: "PERMISOS" },
+    { nombre: "Crear Permiso", codigo: "CREATE_PERMISSION", modulo: "PERMISOS" },
+    { nombre: "Asignar Permiso", codigo: "ASSIGN_PERMISSION", modulo: "PERMISOS" },
+    { nombre: "Editar Permiso", codigo: "EDIT_PERMISSION", modulo: "PERMISOS" },
+    { nombre: "Eliminar Permiso", codigo: "DELETE_PERMISSION", modulo: "PERMISOS" }
   ]
 };
 
@@ -113,25 +121,29 @@ export const setupRolesYPermisos = async () => {
       for (const permiso of permisos[modulo]) {
         try {
           // Verificar si el permiso ya existe
-          const existingPermission = await db.query<{ codigo: string }>(`
-            SELECT codigo
+          const [existingPermission] = await db.query<{ PermisoID: number; Codigo: string }>(`
+            SELECT PermisoID, Codigo
             FROM Permisos
-            WHERE codigo = @codigo
-          `, { codigo: permiso.codigo });
+            WHERE Codigo = @Codigo
+          `, { Codigo: permiso.codigo });
 
-          if (existingPermission.length === 0) {
+          if (!existingPermission) {
             // Insertar el permiso si no existe
             const permisoCreado = await RoleService.createPermission(permiso);
             permisosCreados.set(permiso.codigo, permisoCreado.PermisoID);
             console.log(`✅ Permiso ${permiso.codigo} creado correctamente`);
           } else {
-            // console.log(`Permiso ${permiso.codigo} ya existe`);
+            // El permiso ya existe
+            permisosCreados.set(existingPermission.Codigo, existingPermission.PermisoID);
+            // console.log(`⚠️ Permiso ${permiso.codigo} ya existe, se omitió su creación`);
           }
         } catch (error) {
-          console.error(`Error creando permiso ${permiso.codigo}:`, error);
+          console.error(`❌ Error creando permiso ${permiso.codigo}:`, error);
         }
       }
     }
+
+
 
     // Definir las asignaciones de permisos por rol
     type RolesPermisos = {
@@ -143,7 +155,9 @@ export const setupRolesYPermisos = async () => {
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
         "READ_ORDERS", "CREATE_ORDERS", "UPDATE_ORDERS", "DELETE_ORDERS",
         "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS",
-        "READ_CLIENTS", "CREATE_CLIENTS", "UPDATE_CLIENTS", "DELETE_CLIENTS", "DELETE_CATEGORIES"
+        "READ_CLIENTS", "CREATE_CLIENTS", "UPDATE_CLIENTS", "DELETE_CLIENTS", "DELETE_CATEGORIES",
+        // Permisos de gestión de permisos
+        "MANAGE_PERMISSIONS","CREATE_PERMISSION", "ASSIGN_PERMISSION", "EDIT_PERMISSION", "DELETE_PERMISSION"
       ],
       ADMIN: [
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",

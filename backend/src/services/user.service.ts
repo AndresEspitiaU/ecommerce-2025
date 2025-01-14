@@ -16,6 +16,7 @@ interface UpdateUserData {
 }
 
 export class UserService {
+  
   // Obtener todos los usuarios
   static async getUsers(includeInactive: boolean = false) {
     try {
