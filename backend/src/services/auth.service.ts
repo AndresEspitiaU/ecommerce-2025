@@ -38,6 +38,8 @@ interface LoginUser {
   BloqueoHasta: Date | null;
   Estado: string;
   EmailConfirmado: boolean;
+  roles?: string[];
+  permissions?: string[];
 }
 
 export class AuthService {
@@ -150,108 +152,145 @@ export class AuthService {
   // METODO PARA INICIAR SESION
   static async login(email: string, password: string): Promise<LoginResponse> {
     try {
-      // Obtener el usuario
-      const users = await db.query<LoginUser>(`
-        SELECT 
-          UsuarioID, 
-          Contraseña, 
-          SaltContraseña, 
-          IntentosFallidos, 
-          BloqueoHasta,
-          Estado,
-          EmailConfirmado
-        FROM Usuarios 
-        WHERE Email = @Email AND Eliminado = 0
-      `, { Email: email });
+        // Obtener el usuario por email
+        const users = await db.query<LoginUser>(`
+            SELECT 
+                UsuarioID, 
+                Contraseña, 
+                SaltContraseña, 
+                IntentosFallidos, 
+                BloqueoHasta,
+                Estado,
+                EmailConfirmado
+            FROM Usuarios 
+            WHERE Email = @Email AND Eliminado = 0
+        `, { Email: email });
 
-      if (!users || users.length === 0) {
-        throw new Error('Credenciales inválidas');
-      }
+        if (!users || users.length === 0) {
+            throw new Error('Credenciales inválidas');
+        }
 
-      const user = users[0];
+        const user = users[0];
 
-      // Verificar estado de la cuenta
-      if (user.Estado === 'SUSPENDIDO' || user.Estado === 'BANEADO') {
-        throw new Error('Esta cuenta se encuentra deshabilitada');
-      }
+        // Verificar estado de la cuenta
+        if (user.Estado === 'SUSPENDIDO' || user.Estado === 'BANEADO') {
+            throw new Error('Esta cuenta se encuentra deshabilitada');
+        }
 
-      // Comentamos temporalmente la verificación de email
-      /* 
-      if (!user.EmailConfirmado) {
-        throw new Error('Por favor confirma tu email antes de iniciar sesión');
-      }
-      */
+        // Verificar si la cuenta está bloqueada
+        if (user.BloqueoHasta && new Date(user.BloqueoHasta) > new Date()) {
+            const tiempoRestante = Math.ceil(
+                (new Date(user.BloqueoHasta).getTime() - new Date().getTime()) / 1000 / 60
+            );
+            throw new Error(`Cuenta bloqueada temporalmente. Intenta de nuevo en ${tiempoRestante} minutos`);
+        }
 
-      // Verificar si la cuenta está bloqueada
-      if (user.BloqueoHasta && new Date(user.BloqueoHasta) > new Date()) {
-        const tiempoRestante = Math.ceil(
-          (new Date(user.BloqueoHasta).getTime() - new Date().getTime()) / 1000 / 60
-        );
-        throw new Error(`Cuenta bloqueada temporalmente. Intenta de nuevo en ${tiempoRestante} minutos`);
-      }
+        // Verificar la contraseña
+        const isValid = await bcrypt.compare(password + user.SaltContraseña, user.Contraseña);
+        if (!isValid) {
+            // Actualizar intentos fallidos
+            await db.query(`
+                UPDATE Usuarios 
+                SET 
+                    IntentosFallidos = IntentosFallidos + 1,
+                    BloqueoHasta = CASE 
+                        WHEN IntentosFallidos + 1 >= 5 THEN DATEADD(MINUTE, 30, GETDATE())
+                        ELSE NULL 
+                    END
+                WHERE UsuarioID = @UsuarioID
+            `, { UsuarioID: user.UsuarioID });
 
-      // Verificar la contraseña
-      const isValid = await bcrypt.compare(password + user.SaltContraseña, user.Contraseña);
-      if (!isValid) {
-        // Actualizar intentos fallidos
+            throw new Error('Credenciales inválidas');
+        }
+
+        // Resetear intentos fallidos y actualizar último acceso
         await db.query(`
-          UPDATE Usuarios 
-          SET 
-            IntentosFallidos = IntentosFallidos + 1,
-            BloqueoHasta = CASE 
-              WHEN IntentosFallidos + 1 >= 5 THEN DATEADD(MINUTE, 30, GETDATE())
-              ELSE NULL 
-            END
-          WHERE UsuarioID = @UsuarioID
+            UPDATE Usuarios 
+            SET 
+                IntentosFallidos = 0,
+                UltimoAcceso = GETDATE(),
+                BloqueoHasta = NULL
+            WHERE UsuarioID = @UsuarioID
         `, { UsuarioID: user.UsuarioID });
-        
-        throw new Error('Credenciales inválidas');
-      }
 
-      // Resetear intentos fallidos y actualizar último acceso
-      await db.query(`
-        UPDATE Usuarios 
-        SET 
-          IntentosFallidos = 0,
-          UltimoAcceso = GETDATE(),
-          BloqueoHasta = NULL
-        WHERE UsuarioID = @UsuarioID
-      `, { UsuarioID: user.UsuarioID });
+        // Obtener roles del usuario
+        const roles = await db.query<{ Nombre: string }>(`
+            SELECT R.Nombre
+            FROM UsuariosRoles UR
+            INNER JOIN Roles R ON UR.RolID = R.RolID
+            WHERE UR.UsuarioID = @UsuarioID AND UR.Activo = 1
+        `, { UsuarioID: user.UsuarioID });
 
-      // Generar token JWT
-      const token = jwt.sign(
-        { userId: user.UsuarioID },
-        process.env.JWT_SECRET || 'default_secret',
-        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
-      );
+        const userRoles = roles.map(role => role.Nombre);
 
-      // Obtener datos del usuario para la respuesta
-      const userData = await db.query<LoginResponse['user']>(`
-        SELECT 
-          UsuarioID,
-          Email,
-          Nombres,
-          Apellidos,
-          NombreUsuario,
-          Estado,
-          IdiomaPreferido,
-          ZonaHoraria
-        FROM Usuarios
-        WHERE UsuarioID = @UsuarioID
-      `, { UsuarioID: user.UsuarioID });
+        // Obtener permisos del usuario
+        const permissions = await db.query<{ Codigo: string }>(`
+            SELECT P.Codigo
+            FROM UsuariosRoles UR
+            INNER JOIN RolesPermisos RP ON UR.RolID = RP.RolID
+            INNER JOIN Permisos P ON RP.PermisoID = P.PermisoID
+            WHERE UR.UsuarioID = @UsuarioID AND UR.Activo = 1
+        `, { UsuarioID: user.UsuarioID });
 
-      if (!userData || userData.length === 0) {
-        throw new Error('Error al obtener datos del usuario');
-      }
+        const userPermissions = permissions.map(permission => permission.Codigo);
 
-      return {
-        token,
-        user: userData[0]
-      };
+        // Generar token JWT
+        const token = jwt.sign(
+            {
+                userId: user.UsuarioID,
+                roles: userRoles,
+                permissions: userPermissions,
+            },
+            process.env.JWT_SECRET || 'default_secret',
+            { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+        );
+
+        // Obtener datos del usuario para la respuesta
+        const userData = await db.query<LoginResponse['user']>(`
+            SELECT 
+                UsuarioID,
+                Email,
+                Nombres,
+                Apellidos,
+                NombreUsuario,
+                Estado,
+                IdiomaPreferido,
+                ZonaHoraria
+            FROM Usuarios
+            WHERE UsuarioID = @UsuarioID
+        `, { UsuarioID: user.UsuarioID });
+
+        if (!userData || userData.length === 0) {
+            throw new Error('Error al obtener datos del usuario');
+        }
+
+        return {
+            token,
+            user: userData[0],
+        };
 
     } catch (error) {
-      console.error('Error en login:', error);
-      throw error;
+        console.error('Error en login:', error);
+        throw error;
+    }
+}
+
+
+  // METODO PARA OBTENER LOS PERMISOS DE UN USUARIO
+  static async getUserPermissions(userId: number): Promise<string[]> {
+    try {
+      const permissions = await db.query<{ Codigo: string }>(`
+        SELECT P.Codigo
+        FROM UsuariosRoles UR
+        INNER JOIN RolesPermisos RP ON UR.RolID = RP.RolID
+        INNER JOIN Permisos P ON RP.PermisoID = P.PermisoID
+        WHERE UR.UsuarioID = @userId AND UR.Activo = 1
+      `, { userId });
+
+      return permissions.map(permission => permission.Codigo);
+    } catch (error) {
+      console.error('Error al obtener permisos del usuario:', error);
+      throw new Error('No se pudieron obtener los permisos del usuario');
     }
   }
 }

@@ -1,6 +1,6 @@
 // src/routes/user.routes.ts
 import { Router } from 'express';
-import { authMiddleware, hasRole, hasPermission } from '@/middleware/auth.middleware';
+import { authMiddleware, hasPermission } from '@/middleware/auth.middleware';
 import { UserController } from '@/controllers/user.controller';
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
 router.get('/verify-email/:token', UserController.verifyEmail);
 router.post('/reset-password', UserController.resetPassword);
 
-// Rutas protegidas
+// Rutas protegidas (requieren autenticación y permisos específicos)
 router.get(
   '/users',
   authMiddleware,

@@ -40,10 +40,22 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
         this.authService.saveToken(response.token);
+        const token = this.authService.getToken();
+        console.log('Token:', token);
+    
+        const roles = this.authService.getUserRoles();
+        const permissions = this.authService.getUserPermissions();
+    
+        console.log('Roles del usuario:', roles);
+        console.log('Permisos del usuario:', permissions);
+    
         this.router.navigate(['/dashboard']); // Redirige al dashboard después del login
       },
       error: (error) => {
         this.errorMessage = 'Error en el inicio de sesión';
+      },
+      complete: () => {
+        this.isLoading = false; // Desactivar indicador de carga
       }
     });
   }

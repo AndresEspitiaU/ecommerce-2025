@@ -1,0 +1,53 @@
+<div class="container mt-4">
+    <h1 class="text-center">Gestión de Permisos</h1>
+  
+    <form [formGroup]="permissionForm" (ngSubmit)="onSubmit()" class="mb-4">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="nombre" class="form-label">Nombre</label>
+          <input type="text" id="nombre" formControlName="nombre" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="codigo" class="form-label">Código</label>
+          <input type="text" id="codigo" formControlName="codigo" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="modulo" class="form-label">Módulo</label>
+          <input type="text" id="modulo" formControlName="modulo" class="form-control" />
+        </div>
+        <div class="col-md-12 mb-3">
+          <label for="descripcion" class="form-label">Descripción</label>
+          <textarea id="descripcion" formControlName="descripcion" class="form-control"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="permissionForm.invalid">
+        {{ isEditing ? 'Actualizar Permiso' : 'Crear Permiso' }}
+      </button>
+      <button type="button" class="btn btn-secondary ms-2" (click)="resetForm()">Cancelar</button>
+    </form>
+  
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Código</th>
+          <th>Módulo</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let permission of permissions">
+          <td>{{ permission.Nombre }}</td>
+          <td>{{ permission.Codigo }}</td>
+          <td>{{ permission.Modulo }}</td>
+          <td>{{ permission.Descripcion }}</td>
+          <td>
+            <button class="btn btn-warning btn-sm me-2" (click)="onEdit(permission)">Editar</button>
+            <button class="btn btn-danger btn-sm" (click)="onDelete(permission.PermisoID)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  

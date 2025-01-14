@@ -11,6 +11,8 @@ import {
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { ButtonModule, DropdownModule, SidebarModule } from '@coreui/angular';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { IconSetService } from '@coreui/icons-angular';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './core/auth.interceptor';
@@ -30,7 +32,15 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions(),
       withHashLocation()
     ),
-    importProvidersFrom(SidebarModule, DropdownModule, ButtonModule, HttpClientModule),
+    importProvidersFrom(
+      SidebarModule,
+      DropdownModule,
+      ButtonModule,
+      HttpClientModule,
+      ReactiveFormsModule, // Necesario para formGroup
+      FormsModule, // Opcional: Si usas formularios template-driven
+      CommonModule // Necesario para *ngFor, *ngIf, etc.
+    ),
     IconSetService,
     provideAnimations(),
     {

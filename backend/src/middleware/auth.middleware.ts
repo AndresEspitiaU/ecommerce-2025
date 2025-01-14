@@ -3,6 +3,7 @@ import type { AuthRequest, JWTPayload } from '@/types/auth.types';
 import jwt from 'jsonwebtoken';
 import { RoleService } from '@/services/role.service';
 
+// 
 const getTokenFromHeader = (req: AuthRequest): string | null => {
   if (!req.headers.authorization) {
     return null;
@@ -16,6 +17,7 @@ const getTokenFromHeader = (req: AuthRequest): string | null => {
   return token;
 };
 
+// 
 export const authMiddleware: RequestHandler = (
   req: AuthRequest,
   res: Response,
@@ -23,124 +25,89 @@ export const authMiddleware: RequestHandler = (
 ): void => {
   try {
     const token = getTokenFromHeader(req);
-    
+
     if (!token) {
       res.status(401).json({ message: 'No se proporcionó token de autenticación' });
       return;
     }
 
     const decoded = jwt.verify(
-      token, 
+      token,
       process.env.JWT_SECRET || 'secret'
     ) as JWTPayload;
-    
-    req.user = decoded;
-    next();
+
+    // Añadir roles y permisos si no están en el token
+    if (!decoded.roles || !decoded.permisos) {
+      RoleService.getUserRoles(decoded.userId).then((roles) => {
+        RoleService.getUserPermissions(decoded.userId).then((permisos) => {
+          req.user = { ...decoded, roles: roles.map((r) => r.Nombre), permisos: permisos.map((p) => p.Codigo) };
+          next();
+        });
+      }).catch(() => {
+        res.status(500).json({ message: 'Error al obtener roles y permisos' });
+      });
+    } else {
+      req.user = decoded;
+      next();
+    }
   } catch (error) {
     res.status(401).json({ message: 'Token inválido' });
-    return;
   }
 };
 
-export const hasRole = (roles: string[]): RequestHandler => (
+
+export const hasRole = (roles: string[]): RequestHandler => async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void => {
-  const userId = req.user?.userId;
-  if (!userId) {
-    res.status(401).json({ message: 'No autorizado' });
+): Promise<void> => {
+  const userRoles = req.user?.roles;
+
+  if (!userRoles || !roles.some((role) => userRoles.includes(role))) {
+    res.status(403).json({ message: 'No tienes los roles necesarios para acceder a este recurso' });
     return;
   }
 
-  RoleService.getUserRoles(userId)
-    .then(userRoles => {
-      const hasRequiredRole = userRoles.some(role => roles.includes(role.Nombre));
-
-      if (!hasRequiredRole) {
-        res.status(403).json({ 
-          message: 'No tienes los roles necesarios para acceder a este recurso' 
-        });
-        return;
-      }
-
-      next();
-    })
-    .catch(() => {
-      res.status(500).json({ message: 'Error al verificar roles' });
-    });
+  next();
 };
 
-export const hasPermission = (permissions: string[]): RequestHandler => (
+
+export const hasPermission = (permissions: string[]): RequestHandler => async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void => {
-  const userId = req.user?.userId;
-  if (!userId) {
-    res.status(401).json({ message: 'No autorizado' });
+): Promise<void> => {
+  const userPermissions = req.user?.permisos;
+
+  if (!userPermissions || !permissions.some((perm) => userPermissions.includes(perm))) {
+    res.status(403).json({ message: 'No tienes los permisos necesarios para realizar esta acción' });
     return;
   }
 
-  RoleService.getUserPermissions(userId)
-    .then(userPermissions => {
-      const hasRequiredPermission = userPermissions.some(permission => 
-        permissions.includes(permission.Codigo)
-      );
-
-      if (!hasRequiredPermission) {
-        res.status(403).json({ 
-          message: 'No tienes los permisos necesarios para realizar esta acción' 
-        });
-        return;
-      }
-
-      next();
-    })
-    .catch(() => {
-      res.status(500).json({ message: 'Error al verificar permisos' });
-    });
+  next();
 };
+
 
 export const checkAccess = (config: {
   roles?: string[];
   permissions?: string[];
-}): RequestHandler => (
+}): RequestHandler => async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void => {
-  const userId = req.user?.userId;
-  if (!userId) {
-    res.status(401).json({ message: 'No autorizado' });
+): Promise<void> => {
+  const { roles = [], permissions = [] } = config;
+
+  const userRoles = req.user?.roles || [];
+  const userPermissions = req.user?.permisos || [];
+
+  const hasRoles = !roles.length || roles.some((role) => userRoles.includes(role));
+  const hasPermissions = !permissions.length || permissions.some((perm) => userPermissions.includes(perm));
+
+  if (!hasRoles || !hasPermissions) {
+    res.status(403).json({ message: 'No tienes los permisos necesarios para realizar esta acción' });
     return;
   }
 
-  const checkRoles = async (): Promise<boolean> => {
-    if (!config.roles?.length) return true;
-    const userRoles = await RoleService.getUserRoles(userId);
-    return userRoles.some(role => config.roles?.includes(role.Nombre));
-  };
-
-  const checkPermissions = async (): Promise<boolean> => {
-    if (!config.permissions?.length) return true;
-    const userPermissions = await RoleService.getUserPermissions(userId);
-    return userPermissions.some(permission => 
-      config.permissions?.includes(permission.Codigo)
-    );
-  };
-
-  Promise.all([checkRoles(), checkPermissions()])
-    .then(([hasRoles, hasPermissions]) => {
-      if (!hasRoles || !hasPermissions) {
-        res.status(403).json({ 
-          message: 'No tienes los permisos necesarios para realizar esta acción' 
-        });
-        return;
-      }
-      next();
-    })
-    .catch(() => {
-      res.status(500).json({ message: 'Error al verificar acceso' });
-    });
+  next();
 };
