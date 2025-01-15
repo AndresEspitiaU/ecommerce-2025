@@ -3,11 +3,19 @@ import * as SubcategoryController from '@/controllers/subcategory.controller';
 
 const router = Router();
 
-// Definir rutas
-router.get('/', SubcategoryController.getAll); // Obtener todas las subcategorías
-router.get('/:id', SubcategoryController.getById); // Obtener una subcategoría por ID
-router.post('/', SubcategoryController.create); // Crear una subcategoría
-router.put('/:id', SubcategoryController.update); // Actualizar una subcategoría
-router.delete('/:id', SubcategoryController.remove); // Eliminar una subcategoría
+// Ruta para obtener todas las subcategorías
+router.get('/', SubcategoryController.getAll); 
+
+// Obtener una subcategoría por ID
+router.get('/:id', SubcategoryController.getById); 
+
+// Crear una subcategoría
+router.post('/', SubcategoryController.create); 
+
+// Actualizar una subcategoría
+router.put('/:id', SubcategoryController.update); 
+
+// Eliminar una subcategoría
+router.delete('/:id', SubcategoryController.remove); 
 
 export default router;

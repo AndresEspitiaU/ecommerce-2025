@@ -20,18 +20,21 @@ router.post('/roles',
   RoleController.createRole
 );
 
+// Ruta para obtener todos los roles (accesible para SUPER_ADMIN y ADMIN)
 router.get('/roles', 
   authMiddleware,
   hasRole(['SUPER_ADMIN', 'ADMIN']),
   RoleController.getRoles
 );
 
+// Ruta para obtener un rol específico (accesible para SUPER_ADMIN y ADMIN)
 router.put('/roles/:id', 
   authMiddleware,
   hasRole(['SUPER_ADMIN']),
   RoleController.updateRole
 );
 
+// Ruta para eliminar un rol específico (solo accesible para SUPER_ADMIN)
 router.delete('/roles/:id', 
   authMiddleware,
   hasRole(['SUPER_ADMIN']),

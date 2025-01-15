@@ -6,10 +6,16 @@ import { UserController } from '@/controllers/user.controller';
 const router = Router();
 
 // Rutas públicas
+
+// Ruta para verificar email 
 router.get('/verify-email/:token', UserController.verifyEmail);
+
+// Ruta para solicitar cambio de contraseña
 router.post('/reset-password', UserController.resetPassword);
 
 // Rutas protegidas (requieren autenticación y permisos específicos)
+
+// Ruta de permiso para leer usuarios
 router.get(
   '/users',
   authMiddleware,
@@ -17,6 +23,7 @@ router.get(
   UserController.getUsers
 );
 
+// Ruta de permiso para leer usuario por ID
 router.get(
   '/users/:id',
   authMiddleware,
@@ -24,6 +31,7 @@ router.get(
   UserController.getUserById
 );
 
+// Ruta de permiso para actualizar usuario
 router.put(
   '/users/:id',
   authMiddleware,
@@ -31,6 +39,7 @@ router.put(
   UserController.updateUser
 );
 
+// Ruta de permiso para eliminar usuario
 router.delete(
   '/users/:id',
   authMiddleware,
@@ -38,6 +47,7 @@ router.delete(
   UserController.deleteUser
 );
 
+// Ruta de permiso para desactivar usuario
 router.post(
   '/users/:id/deactivate',
   authMiddleware,
@@ -45,6 +55,7 @@ router.post(
   UserController.deactivateUser
 );
 
+// Ruta de permiso para asignar roles a usuario
 router.post(
   '/users/assign-roles',
   authMiddleware,
@@ -52,6 +63,7 @@ router.post(
   UserController.assignRolesToUser
 );
 
+// Ruta de permiso para remover roles de usuario
 router.post(
   '/users/remove-roles',
   authMiddleware,
@@ -59,6 +71,7 @@ router.post(
   UserController.removeRolesFromUser
 );
 
+// Ruta de permiso para cambiar contraseña
 router.post(
   '/users/change-password',
   authMiddleware,

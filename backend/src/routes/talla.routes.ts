@@ -3,11 +3,22 @@ import * as TallaController from '@/controllers/talla.controller';
 
 const router = Router();
 
-router.get('/', TallaController.getAll); // Obtener todas las tallas
-router.get('/:id', TallaController.getById); // Obtener una talla por ID
-router.post('/', TallaController.create); // Crear una nueva talla
-router.put('/:id', TallaController.update); // Actualizar una talla existente
-router.delete('/:id', TallaController.remove); // Desactivar una talla
-router.delete('/:id/permanent', TallaController.removePermanent); // Eliminar una talla permanentemente
+// Obtener todas las tallas
+router.get('/', TallaController.getAll); 
+
+// Obtener una talla por ID
+router.get('/:id', TallaController.getById); 
+
+// Crear una nueva talla
+router.post('/', TallaController.create);
+
+// Actualizar una talla existente
+router.put('/:id', TallaController.update); 
+
+// Desactivar una talla
+router.delete('/:id', TallaController.remove); 
+
+// Eliminar una talla permanentemente
+router.delete('/:id/permanent', TallaController.removePermanent); 
 
 export default router;
