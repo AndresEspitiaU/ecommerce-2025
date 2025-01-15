@@ -122,17 +122,39 @@ export class RoleService {
   }
 
   // METODO PARA ASIGNAR PERMISOS A UN ROL
-  static async assignPermissionToRole(rolId: number, permisoId: number, asignadoPor: number): Promise<void> {
+  static async assignPermissionToRole(
+    rolId: number,
+    permisoId: number,
+    asignadoPor: number
+  ): Promise<void> {
     try {
+      console.log('Datos recibidos en el servicio:', { rolId, permisoId, asignadoPor });
+  
+      // Verificar que los datos no estén duplicados
+      const existing = await db.query(`
+        SELECT * FROM RolesPermisos
+        WHERE RolID = @RolID AND PermisoID = @PermisoID
+      `, { RolID: rolId, PermisoID: permisoId });
+  
+      if (existing.length > 0) {
+        throw new Error('El permiso ya está asignado al rol');
+      }
+  
+      // Insertar el permiso en la tabla RolesPermisos
       await db.query(`
         INSERT INTO RolesPermisos (RolID, PermisoID, AsignadoPor)
         VALUES (@RolID, @PermisoID, @AsignadoPor)
       `, { RolID: rolId, PermisoID: permisoId, AsignadoPor: asignadoPor });
+  
+      console.log('Permiso asignado exitosamente');
     } catch (error) {
-      console.error('Error al asignar permiso al rol:', error);
+      console.error('Error en el servicio assignPermissionToRole:', error);
       throw new Error('No se pudo asignar el permiso al rol');
     }
   }
+  
+
+  
 
   // METODO PARA REMOVER PERMISOS DE UN ROL
   static async removePermissionFromRole(rolId: number, permisoId: number): Promise<void> {

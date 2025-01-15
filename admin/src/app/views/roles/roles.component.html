@@ -1,52 +1,61 @@
 <div class="container-lg">
+  <!-- Card de Gestión de Roles -->
   <div class="card mt-4">
-    <div class="card-header bg-light">
-      <h2 class="mb-0">Gestión de Roles</h2>
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">
+        <i class="cil-people me-2"></i>Gestión de Roles
+      </h2>
+      <span class="badge bg-primary">
+        {{ isEditing ? 'Editando Rol' : 'Nuevo Rol' }}
+      </span>
     </div>
 
-    <!-- Formulario para crear o editar roles -->
+    <!-- Formulario -->
     <div class="card-body">
       <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
-        <div class="row mb-3">
+        <div class="row g-3 mb-4">
           <div class="col-md-6">
-            <div class="form-group">
-              <label for="nombre" class="form-label">Nombre:</label>
+            <div class="form-floating">
               <input
                 id="nombre"
                 formControlName="nombre"
                 type="text"
                 class="form-control"
                 [ngClass]="{'is-invalid': roleForm.get('nombre')?.touched && roleForm.get('nombre')?.invalid}"
-                placeholder="Ingrese el nombre del rol"
+                placeholder="Nombre del rol"
               />
-              <div class="invalid-feedback" *ngIf="roleForm.get('nombre')?.touched && roleForm.get('nombre')?.invalid">
-                El nombre es requerido.
+              <label for="nombre">Nombre del Rol</label>
+              <div class="invalid-feedback">
+                <i class="cil-warning me-1"></i>
+                El nombre es requerido y no debe exceder 50 caracteres.
               </div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="form-group">
-              <label for="descripcion" class="form-label">Descripción:</label>
+            <div class="form-floating">
               <input
                 id="descripcion"
                 formControlName="descripcion"
                 type="text"
                 class="form-control"
                 [ngClass]="{'is-invalid': roleForm.get('descripcion')?.touched && roleForm.get('descripcion')?.invalid}"
-                placeholder="Ingrese la descripción del rol"
+                placeholder="Descripción del rol"
               />
-              <div class="invalid-feedback" *ngIf="roleForm.get('descripcion')?.touched && roleForm.get('descripcion')?.invalid">
-                La descripción no puede exceder los 255 caracteres.
+              <label for="descripcion">Descripción</label>
+              <div class="invalid-feedback">
+                <i class="cil-warning me-1"></i>
+                La descripción no puede exceder 255 caracteres.
               </div>
             </div>
           </div>
         </div>
+        
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary" [disabled]="roleForm.invalid">
             <i class="cil-save me-1"></i>
-            Guardar
+            {{ isEditing ? 'Actualizar' : 'Guardar' }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
             <i class="cil-x me-1"></i>
             Cancelar
           </button>
@@ -55,35 +64,65 @@
     </div>
   </div>
 
-  <!-- Tabla de roles -->
+  <!-- Card de Lista de Roles -->
   <div class="card mt-4">
-    <div class="card-header bg-light">
-      <h3 class="mb-0">Lista de Roles</h3>
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">
+        <i class="cil-list me-2"></i>Lista de Roles
+      </h3>
+      <span class="badge bg-secondary">
+        Total: {{ roles.length }}
+      </span>
     </div>
+    
     <div class="card-body">
+      <!-- Barra de búsqueda -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text"><i class="cil-search"></i></span>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar roles..."
+              [(ngModel)]="searchTerm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
       <div class="table-responsive">
-        <table class="table table-hover table-striped table-bordered">
-          <thead class="bg-light">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
             <tr>
               <th>Nombre</th>
               <th>Descripción</th>
-              <th>Permisos</th>
+              <th class="text-center">Permisos</th>
               <th class="text-center" style="width: 200px;">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let role of roles">
-              <td>{{ role.Nombre }}</td>
-              <td>{{ role.Descripcion }}</td>
               <td>
-                <button class="btn btn-info btn-sm" (click)="viewPermissions(role.RolID)">
-                  Ver Permisos
+                <span class="fw-medium">{{ role.Nombre }}</span>
+              </td>
+              <td>{{ role.Descripcion || 'Sin descripción' }}</td>
+              <td class="text-center">
+                <button
+                  class="btn btn-outline-info btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#permissionsModal"
+                  (click)="viewPermissions(role.RolID)"
+                >
+                  <i class="cil-shield-alt me-1"></i>
+                  Gestionar Permisos
                 </button>
               </td>
               <td>
                 <div class="d-flex justify-content-center gap-2">
                   <button
-                    class="btn btn-warning btn-sm"
+                    class="btn btn-outline-warning btn-sm"
                     (click)="onEdit(role)"
                     title="Editar"
                   >
@@ -91,7 +130,7 @@
                     Editar
                   </button>
                   <button
-                    class="btn btn-danger btn-sm"
+                    class="btn btn-outline-danger btn-sm"
                     (click)="onDelete(role.RolID)"
                     title="Eliminar"
                   >
@@ -102,13 +141,103 @@
               </td>
             </tr>
             <tr *ngIf="roles.length === 0">
-              <td colspan="3" class="text-center py-4">
-                <i class="cil-info text-muted me-2"></i>
-                No hay roles disponibles.
+              <td colspan="4" class="text-center py-4">
+                <div class="text-muted">
+                  <i class="cil-info display-6 d-block mb-2"></i>
+                  <p class="mb-0">No hay roles disponibles.</p>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Permisos -->
+<div class="modal fade modal-right" id="permissionsModal" tabindex="-1" aria-labelledby="permissionsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="permissionsModalLabel">
+          <i class="cil-shield-alt me-2"></i>Gestionar Permisos para el Rol
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="row g-4">
+          <!-- Permisos Asignados -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header bg-success bg-opacity-10">
+                <h6 class="card-title mb-0">
+                  <i class="cil-check-circle me-2"></i>Permisos Asignados
+                  <span class="badge bg-success ms-2">{{ rolePermissions.length }}</span>
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="input-group mb-3">
+                  <span class="input-group-text"><i class="cil-search"></i></span>
+                  <input type="text" class="form-control" placeholder="Buscar permisos asignados..." 
+                         [(ngModel)]="assignedSearchTerm">
+                </div>
+                
+                <div class="list-group">
+                  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                       *ngFor="let permission of rolePermissions | filter:assignedSearchTerm">
+                    <span>{{ permission.Nombre }}</span>
+                    <button class="btn btn-outline-danger btn-sm" (click)="removePermission(permission.PermisoID)">
+                      <i class="cil-trash me-1"></i>Eliminar
+                    </button>
+                  </div>
+                  <div *ngIf="rolePermissions.length === 0" class="text-muted text-center py-3">
+                    No hay permisos asignados
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permisos Disponibles -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header bg-primary bg-opacity-10">
+                <h6 class="card-title mb-0">
+                  <i class="cil-list me-2"></i>Permisos Disponibles
+                  <span class="badge bg-primary ms-2">{{ allPermissions.length }}</span>
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="input-group mb-3">
+                  <span class="input-group-text"><i class="cil-search"></i></span>
+                  <input type="text" class="form-control" placeholder="Buscar permisos disponibles..." 
+                         [(ngModel)]="availableSearchTerm">
+                </div>
+
+                <div class="list-group">
+                  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                       *ngFor="let permission of allPermissions | filter:availableSearchTerm">
+                    <span>{{ permission.Nombre }}</span>
+                    <button class="btn btn-outline-success btn-sm" (click)="assignPermission(permission.PermisoID)">
+                      <i class="cil-plus me-1"></i>Asignar
+                    </button>
+                  </div>
+                  <div *ngIf="allPermissions.length === 0" class="text-muted text-center py-3">
+                    No hay permisos disponibles
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="cil-x me-1"></i>Cerrar
+        </button>
       </div>
     </div>
   </div>

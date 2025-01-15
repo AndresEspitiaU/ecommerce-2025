@@ -5,7 +5,7 @@ import { authMiddleware, hasPermission, hasRole } from '@/middleware/auth.middle
 
 const router = Router();
 
-// Roles
+// Crear rol
 router.post(
   '/roles',
   authMiddleware,
@@ -13,16 +13,18 @@ router.post(
   RoleController.createRole
 );
 
+// Obtener todos los roles
 router.get('/roles', authMiddleware, RoleController.getRoles);
 
-router.post(
-  '/users/assign-roles',
+// Obtener permisos de un rol
+router.get(
+  '/roles/:rolId/permissions',
   authMiddleware,
-  hasRole(['SUPER_ADMIN']),
-  RoleController.assignRolesToUser
+  hasPermission(['VIEW_ROLE_PERMISSIONS']),
+  RoleController.getRolePermissions
 );
 
-// **Asignación de permisos a roles**
+// Asignar permisos a roles
 router.post(
   '/roles/assign-permission',
   authMiddleware,
@@ -30,6 +32,7 @@ router.post(
   RoleController.assignPermissionToRole
 );
 
+// Remover permisos de roles
 router.post(
   '/roles/remove-permission',
   authMiddleware,
@@ -37,11 +40,12 @@ router.post(
   RoleController.removePermissionFromRole
 );
 
-router.get(
-  '/roles/:rolId/permissions',
+// Asignar roles a usuarios
+router.post(
+  '/users/assign-roles',
   authMiddleware,
-  hasPermission(['VIEW_ROLES']),
-  RoleController.getRolePermissions
+  hasRole(['SUPER_ADMIN']),
+  RoleController.assignRolesToUser
 );
 
 export default router;

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { jwtDecode, JwtPayload } from 'jwt-decode'; // Importación corregida
 
 
@@ -22,19 +22,27 @@ export class AuthService {
   login(email: string, password: string): Observable<any> {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     const body = { email, password };
-
-    return this.http.post(`${this.baseUrl}/login`, body, { headers });
+  
+    return this.http.post(`${this.baseUrl}/login`, body, { headers }).pipe(
+      tap((response: any) => {
+        if (response.token) {
+          this.saveToken(response.token); // Guarda el token
+        }
+      })
+    );
   }
-
-  // Método para guardar el token en el almacenamiento local
+  
+  
   saveToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
   }
+  
 
   // Método para obtener el token desde el almacenamiento local
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
+  
 
   // Método para cerrar sesión
   logout(): void {

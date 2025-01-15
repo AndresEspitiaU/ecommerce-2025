@@ -15,26 +15,24 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private router: Router) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('authToken'); // Asegúrate de que esta clave coincida con donde guardas el token.
-
+    const token = localStorage.getItem('authToken'); // Asegúrate de usar la clave correcta.
+  
     if (token) {
-      // Clonar la solicitud y agregar el encabezado Authorization
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
         },
       });
     }
-
+  
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        // Manejar errores 401 (Unauthorized)
         if (error.status === 401) {
-          console.error('No autorizado, redirigiendo a /login...');
-          this.router.navigate(['/login']); // Redirige al login si el token no es válido
+          this.router.navigate(['/login']);
         }
-        return throwError(() => error); // Relanzar el error para que otros componentes puedan manejarlo si es necesario
+        return throwError(() => error);
       })
     );
   }
+  
 }

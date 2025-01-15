@@ -3,7 +3,7 @@ import { RoleService } from '../services/role.service';
 import { db } from '@/config/database';
 
 // Definir los tipos
-type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS' | 'PERMISOS';
+type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS' | 'PERMISOS' | 'ROLES';
 
 interface Permiso {
   nombre: string;
@@ -19,6 +19,7 @@ interface PermisosConfig {
   USUARIOS: Permiso[];
   CLIENTES: Permiso[];
   PERMISOS: Permiso[];
+  ROLES: Permiso[];
 }
 
 interface RolBase {
@@ -84,7 +85,11 @@ export const permisos: PermisosConfig = {
     { nombre: "Asignar Permiso", codigo: "ASSIGN_PERMISSION", modulo: "PERMISOS" },
     { nombre: "Editar Permiso", codigo: "EDIT_PERMISSION", modulo: "PERMISOS" },
     { nombre: "Eliminar Permiso", codigo: "DELETE_PERMISSION", modulo: "PERMISOS" }
-  ]
+  ],
+  ROLES: [
+    { nombre: 'Ver Permisos de Rol', codigo: 'VIEW_ROLE_PERMISSIONS', modulo: 'ROLES' },
+
+  ],
 };
 
 export const setupRolesYPermisos = async () => {
@@ -157,7 +162,9 @@ export const setupRolesYPermisos = async () => {
         "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS",
         "READ_CLIENTS", "CREATE_CLIENTS", "UPDATE_CLIENTS", "DELETE_CLIENTS", "DELETE_CATEGORIES",
         // Permisos de gestión de permisos
-        "MANAGE_PERMISSIONS","CREATE_PERMISSION", "ASSIGN_PERMISSION", "EDIT_PERMISSION", "DELETE_PERMISSION"
+        "MANAGE_PERMISSIONS","CREATE_PERMISSION", "ASSIGN_PERMISSION", "EDIT_PERMISSION", "DELETE_PERMISSION", 
+        // Roles
+        "VIEW_ROLE_PERMISSIONS"
       ],
       ADMIN: [
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
@@ -184,7 +191,7 @@ export const setupRolesYPermisos = async () => {
           const permisoID = permisosCreados.get(permiso);
           if (permisoID) {
             try {
-              await RoleService.assignPermissionToRole(rolID, permisoID);
+              await RoleService.assignPermissionToRole(rolID, permisoID, 1);
               console.log(`✅ Permiso ${permiso} asignado al rol ${rol}`);
             } catch (error) {
               console.error(`Error asignando permiso ${permiso} al rol ${rol}:`, error);

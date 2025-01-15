@@ -30,11 +30,25 @@ export class RolesService {
     return this.http.get<any[]>('http://localhost:3000/api/permissions');
   }
 
-  assignPermissionToRole(rolId: number, permisoId: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/assign-permission`, { rolId, permisoId });
+  assignPermissionToRole(rolId: number, permisoId: number, asignadoPor: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/assign-permission`, {
+      rolId,
+      permisoId,
+      asignadoPor,
+    });
   }
+  
+  
 
   getRolePermissions(rolId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/${rolId}/permissions`);
   }
+
+  removePermissionFromRole(rolId: number, permisoId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/remove-permission`, { rolId, permisoId });
+  }
+  
+    
+  
+  
 }

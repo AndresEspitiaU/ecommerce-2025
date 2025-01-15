@@ -18,11 +18,11 @@ const getTokenFromHeader = (req: AuthRequest): string | null => {
 };
 
 // 
-export const authMiddleware: RequestHandler = (
+export const authMiddleware: RequestHandler = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     const token = getTokenFromHeader(req);
 
@@ -31,25 +31,21 @@ export const authMiddleware: RequestHandler = (
       return;
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || 'secret'
-    ) as JWTPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JWTPayload;
 
-    // Añadir roles y permisos si no están en el token
     if (!decoded.roles || !decoded.permisos) {
-      RoleService.getUserRoles(decoded.userId).then((roles) => {
-        RoleService.getUserPermissions(decoded.userId).then((permisos) => {
-          req.user = { ...decoded, roles: roles.map((r) => r.Nombre), permisos: permisos.map((p) => p.Codigo) };
-          next();
-        });
-      }).catch(() => {
-        res.status(500).json({ message: 'Error al obtener roles y permisos' });
-      });
+      const roles = await RoleService.getUserRoles(decoded.userId);
+      const permisos = await RoleService.getUserPermissions(decoded.userId);
+      req.user = {
+        ...decoded,
+        roles: roles.map((role) => role.Nombre),
+        permisos: permisos.map((permiso) => permiso.Codigo),
+      };
     } else {
-      req.user = decoded;
-      next();
+      req.user = decoded; 
     }
+
+    next();
   } catch (error) {
     res.status(401).json({ message: 'Token inválido' });
   }
