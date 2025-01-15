@@ -4,7 +4,8 @@ import type { IRole, IPermiso, IRolPermiso, IUsuarioRol } from '@/types/role.typ
 import sql from 'mssql';
 
 export class RoleService {
-  // Roles
+
+  // METODO PARA CREAR UN ROL
   static async createRole(rolData: { nombre: string; descripcion?: string }) {
     try {
       const result = await db.query<IRole>(`
@@ -22,6 +23,7 @@ export class RoleService {
     }
   }
 
+  // METODO PARA OBTENER UN ROL POR ID
   static async getRoles(includeInactive: boolean = false) {
     try {
       const roles = await db.query<IRole>(`
@@ -36,6 +38,7 @@ export class RoleService {
     }
   }
 
+  // METODO PARA ACTUALIZAR UN ROL
   static async updateRole(rolId: number, rolData: { nombre: string; descripcion?: string }) {
     try {
       const result = await db.query<IRole>(`
@@ -57,30 +60,27 @@ export class RoleService {
       throw error;
     }
   }
-  
-// Servicio: RoleService
 
-static async deleteRole(rolId: number): Promise<number> {
-  try {
-    const pool = await db.getConnection();
-    const request = pool.request();
-    request.input('RolID', sql.Int, rolId);
+  // METODO PARA ELIMINAR UN ROL
+  static async deleteRole(rolId: number): Promise<number> {
+    try {
+      const pool = await db.getConnection();
+      const request = pool.request();
+      request.input('RolID', sql.Int, rolId);
 
-    const result = await request.query(`
-      DELETE FROM Roles
-      WHERE RolID = @RolID
-    `);
+      const result = await request.query(`
+        DELETE FROM Roles
+        WHERE RolID = @RolID
+      `);
 
-    return result.rowsAffected[0] || 0; // Devuelve el número de filas afectadas
-  } catch (error) {
-    console.error('Error al eliminar el rol:', error);
-    throw new Error('No se pudo eliminar el rol');
+      return result.rowsAffected[0] || 0; // Devuelve el número de filas afectadas
+    } catch (error) {
+      console.error('Error al eliminar el rol:', error);
+      throw new Error('No se pudo eliminar el rol');
+    }
   }
-}
 
-
-
-  // Permisos
+  // METODO PARA CREAR UN PERMISO
   static async createPermission(permisoData: {
     nombre: string;
     codigo: string;
@@ -105,6 +105,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
+  // METODO PARA OBETENER TODOS LOS PERMISOS
   static async getPermissions(modulo?: string) {
     try {
       const permisos = await db.query<IPermiso>(`
@@ -120,29 +121,48 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
-  // Asignación de permisos a roles
-  static async assignPermissionToRole(rolID: number, permisoID: number) {
-    await db.query(`
-      INSERT INTO RolesPermisos (RolID, PermisoID)
-      VALUES (@rolID, @permisoID)
-    `, { rolID, permisoID });
+  // METODO PARA ASIGNAR PERMISOS A UN ROL
+  static async assignPermissionToRole(rolId: number, permisoId: number, asignadoPor: number): Promise<void> {
+    try {
+      await db.query(`
+        INSERT INTO RolesPermisos (RolID, PermisoID, AsignadoPor)
+        VALUES (@RolID, @PermisoID, @AsignadoPor)
+      `, { RolID: rolId, PermisoID: permisoId, AsignadoPor: asignadoPor });
+    } catch (error) {
+      console.error('Error al asignar permiso al rol:', error);
+      throw new Error('No se pudo asignar el permiso al rol');
+    }
   }
 
-  static async removePermissionFromRole(rolId: number, permisoId: number) {
+  // METODO PARA REMOVER PERMISOS DE UN ROL
+  static async removePermissionFromRole(rolId: number, permisoId: number): Promise<void> {
     try {
       await db.query(`
         DELETE FROM RolesPermisos
         WHERE RolID = @RolID AND PermisoID = @PermisoID
-      `, {
-        RolID: rolId,
-        PermisoID: permisoId
-      });
+      `, { RolID: rolId, PermisoID: permisoId });
     } catch (error) {
-      throw error;
+      console.error('Error al eliminar permiso del rol:', error);
+      throw new Error('No se pudo eliminar el permiso del rol');
     }
   }
 
-  // Asignación de roles a usuarios
+  // METODO PARA OBTENER LOS PERMISOS DE UN ROL
+  static async getPermissionsByRole(rolId: number): Promise<any[]> {
+    try {
+      return await db.query(`
+        SELECT p.PermisoID, p.Nombre, p.Codigo, p.Descripcion, p.Modulo
+        FROM Permisos p
+        INNER JOIN RolesPermisos rp ON p.PermisoID = rp.PermisoID
+        WHERE rp.RolID = @RolID
+      `, { RolID: rolId });
+    } catch (error) {
+      console.error('Error al obtener permisos del rol:', error);
+      throw new Error('No se pudieron obtener los permisos del rol');
+    }
+  }
+
+  // METODO PARA ASIGNAR ROLES A UN USUARIO
   static async assignRoleToUser(data: {
     usuarioId: number;
     rolId: number;
@@ -180,6 +200,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
+  // METODO PARA REMOVER UN ROL DE UN USUARIO
   static async removeRoleFromUser(usuarioId: number, rolId: number) {
     try {
       await db.query(`
@@ -195,7 +216,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
-  // Consultas específicas
+  // METODO PARA OBTENER LOS PERMISOS DE UN ROL
   static async getRolePermissions(rolId: number) {
     try {
       const permisos = await db.query<IPermiso>(`
@@ -212,7 +233,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
-  // Verificar permisos de usuario
+  // METODO PARA OBTENER LOS PERMISOS DE UN USUARIO
   static async getUserPermissions(usuarioId: number) {
     try {
       const permisos = await db.query<IPermiso>(`
@@ -232,7 +253,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
-  // Verificar roles de usuario
+  // METODO PARA OBTENER LOS ROLES DE UN USUARIO
   static async getUserRoles(usuarioId: number) {
     try {
       const roles = await db.query<IRole>(`
@@ -251,6 +272,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
+  // METODO PARA VERIFICAR SI UN USUARIO TIENE UN PERMISO
   static async hasPermission(usuarioId: number, permisoCodigo: string): Promise<boolean> {
     try {
       const permisos = await this.getUserPermissions(usuarioId);
@@ -260,6 +282,7 @@ static async deleteRole(rolId: number): Promise<number> {
     }
   }
 
+  // METODO PARA VERIFICAR SI UN USUARIO TIENE UN ROL
   static async hasRole(usuarioId: number, rolNombre: string): Promise<boolean> {
     try {
       const roles = await this.getUserRoles(usuarioId);

@@ -49,16 +49,16 @@ export class AuthService {
   getUserRoles(): string[] {
     const token = this.getToken();
     if (!token) return [];
-    
+
     const decodedToken: any = this.decodeToken(token);
     console.log('Roles desde el token:', decodedToken.roles);
     return decodedToken.roles || [];
   }
-  
+
   getUserPermissions(): string[] {
-    const token = this.getToken(); 
+    const token = this.getToken();
     if (!token) return [];
-  
+
     try {
       const decodedToken: any = this.decodeToken(token); // Decodificar token
       return decodedToken.permissions || []; // Retornar permisos
@@ -67,8 +67,8 @@ export class AuthService {
       return [];
     }
   }
-  
-  
+
+
   private decodeToken(token: string): any {
     try {
       const decoded = JSON.parse(atob(token.split('.')[1]));
@@ -79,8 +79,8 @@ export class AuthService {
       return null;
     }
   }
-  
-  
+
+
   // Verificar si el usuario tiene permisos específicos
   hasPermissions(requiredPermissions: string[]): boolean {
     const userPermissions = this.getUserPermissions();

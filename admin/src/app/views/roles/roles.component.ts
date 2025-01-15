@@ -16,7 +16,7 @@ export class RolesComponent implements OnInit {
   roleForm: FormGroup; // Formulario reactivo para agregar/editar roles
   isEditing = false; // Flag para indicar si se está editando
   editingRoleId: number | null = null; // ID del rol que se está editando
-
+  permissions: any[] = [];
 
   constructor(
     private rolesService: RolesService,
@@ -45,7 +45,14 @@ export class RolesComponent implements OnInit {
       },
     });
   }
-  
+
+  loadPermissions(): void {
+    this.rolesService.getAllPermissions().subscribe({
+      next: (data) => (this.permissions = data),
+      error: (err) => console.error('Error al cargar permisos:', err),
+    });
+  }
+
 
   // Manejar el envío del formulario
   onSubmit(): void {
@@ -55,9 +62,9 @@ export class RolesComponent implements OnInit {
       Swal.fire('Error', 'Por favor completa los campos requeridos.', 'error');
       return;
     }
-  
+
     const roleData = this.roleForm.value;
-  
+
     // Mostrar indicador de carga
     Swal.fire({
       title: 'Procesando...',
@@ -67,7 +74,7 @@ export class RolesComponent implements OnInit {
         Swal.showLoading();
       }
     });
-  
+
     if (this.isEditing && this.editingRoleId !== null) {
       // Editar rol existente
       this.rolesService.updateRole(this.editingRoleId, roleData).subscribe({
@@ -95,17 +102,28 @@ export class RolesComponent implements OnInit {
         }
       });
     }
-  
-  
+  }
+
+  viewPermissions(rolId: number): void {
+    this.rolesService.getRolePermissions(rolId).subscribe({
+      next: (data) => {
+        Swal.fire({
+          title: 'Permisos del Rol',
+          html: data.map((permiso) => `<p>${permiso.Nombre}</p>`).join(''),
+          icon: 'info',
+        });
+      },
+      error: (err) => console.error('Error al cargar permisos del rol:', err),
+    });
   }
 
   // Editar un rol existente
   onEdit(role: any): void {
     this.isEditing = true;
-    this.editingRoleId = role.RolID; 
+    this.editingRoleId = role.RolID;
     this.roleForm.patchValue(role);
   }
-  
+
 
   // Cancelar acción de edición o creación
   onCancel(): void {
@@ -115,7 +133,7 @@ export class RolesComponent implements OnInit {
   // Eliminar un rol
   onDelete(roleId: number): void {
     console.log('Intentando eliminar el rol con ID:', roleId); // Agrega este log para depuración
-  
+
     Swal.fire({
       title: '¿Estás seguro?',
       text: 'Esta acción no se puede deshacer.',
@@ -138,7 +156,7 @@ export class RolesComponent implements OnInit {
       }
     });
   }
-  
+
 
   // Resetear el formulario
   resetForm(): void {

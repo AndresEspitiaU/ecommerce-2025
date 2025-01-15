@@ -24,7 +24,6 @@ interface AssignRolesRequest {
 }
 
 export class RoleController {
-  
   // ASIGNAR ROLES A UN USUARIO
   static assignRolesToUser: RequestHandler = async (
     req: Request<{}, {}, AssignRolesRequest>,
@@ -57,7 +56,6 @@ export class RoleController {
       });
     }
   };
-
 
   // METODO PARA CREAR UN ROL
   static createRole: RequestHandler = async (
@@ -145,7 +143,6 @@ export class RoleController {
     }
   };
 
-
   // METODO PARA CREAR UN PERMISO
   static createPermission: RequestHandler = async (
     req: Request,
@@ -156,8 +153,8 @@ export class RoleController {
       const { nombre, codigo, descripcion, modulo } = req.body as PermissionRequest;
 
       if (!nombre || !codigo || !modulo) {
-        res.status(400).json({ 
-          message: 'Nombre, código y módulo son requeridos' 
+        res.status(400).json({
+          message: 'Nombre, código y módulo son requeridos'
         });
         return;
       }
@@ -194,31 +191,32 @@ export class RoleController {
   };
 
   // METODO PARA ASIGNAR UN PERMISO A UN ROL
-  static assignPermissionToRole: RequestHandler = async (
-    req: Request<{}, {}, AssignPermissionRequest>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { rolId, permisoId } = req.body;
+  // static assignPermissionToRole: RequestHandler = async (
+  //   req: Request<{}, {}, AssignPermissionRequest>,
+  //   res: Response,
+  //   next: NextFunction
+  // ): Promise<void> => {
+  //   try {
+  //     const { rolId, permisoId } = req.body;
 
-      if (!rolId || !permisoId) {
-        res.status(400).json({
-          message: 'rolId y permisoId son requeridos'
-        });
-        return;
-      }
+  //     if (!rolId || !permisoId) {
+  //       res.status(400).json({
+  //         message: 'rolId y permisoId son requeridos'
+  //       });
+  //       return;
+  //     }
 
-      const result = await RoleService.assignPermissionToRole(rolId, permisoId);
+  //     const result = await RoleService.assignPermissionToRole(rolId, permisoId);
 
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('Error al asignar permisos:', error);
-      res.status(400).json({
-        message: error instanceof Error ? error.message : 'Error al asignar permisos'
-      });
-    }
-  };
+  //     res.status(200).json(result);
+  //   } catch (error) {
+  //     console.error('Error al asignar permisos:', error);
+  //     res.status(400).json({
+  //       message: error instanceof Error ? error.message : 'Error al asignar permisos'
+  //     });
+  //   }
+  // };
+
 
   // METODO PARA REMOVER UN PERMISO DE UN ROL
   static removePermissionFromRole: RequestHandler = async (
@@ -233,23 +231,6 @@ export class RoleController {
     } catch (error) {
       res.status(400).json({
         message: error instanceof Error ? error.message : 'Error al remover permiso del rol'
-      });
-    }
-  };
-
-  // METODO PARA OBTENER LOS PERMISOS DE UN ROL
-  static getRolePermissions: RequestHandler = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { rolId } = req.params;
-      const permissions = await RoleService.getRolePermissions(Number(rolId));
-      res.json(permissions);
-    } catch (error) {
-      res.status(400).json({
-        message: error instanceof Error ? error.message : 'Error al obtener permisos del rol'
       });
     }
   };
@@ -287,4 +268,74 @@ export class RoleController {
       });
     }
   };
+
+  // METODO PARA ASIGNAR PERMISOS
+  static async assignPermission(req: Request, res: Response): Promise<void> {
+    try {
+      const { rolId, permisoId, asignadoPor } = req.body;
+
+      await RoleService.assignPermissionToRole(rolId, permisoId, asignadoPor);
+
+      res.json({ message: 'Permiso asignado correctamente' });
+    } catch (error) {
+      console.error('Error al asignar permiso:', error);
+      res.status(500).json({ message: 'Error al asignar permiso' });
+    }
+  }
+
+  // METODO PARA REMOVER PERMISOS
+  static async removePermission(req: Request, res: Response): Promise<void> {
+    try {
+      const { rolId, permisoId } = req.body;
+
+      await RoleService.removePermissionFromRole(rolId, permisoId);
+
+      res.json({ message: 'Permiso eliminado correctamente' });
+    } catch (error) {
+      console.error('Error al eliminar permiso:', error);
+      res.status(500).json({ message: 'Error al eliminar permiso' });
+    }
+  }
+
+  // METODO PARA OBTENER PERMISOS DE UN ROL
+  static async getRolePermissions(req: Request, res: Response): Promise<void> {
+    try {
+      const { rolId } = req.params;
+
+      const permissions = await RoleService.getPermissionsByRole(Number(rolId));
+
+      res.json(permissions);
+    } catch (error) {
+      console.error('Error al obtener permisos del rol:', error);
+      res.status(500).json({ message: 'Error al obtener permisos del rol' });
+    }
+  }
+
+  // METODO PARA ASIGNAR PERMISO A UN ROL
+  static assignPermissionToRole: RequestHandler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { rolId, permisoId, asignadoPor } = req.body;
+
+      if (!rolId || !permisoId || !asignadoPor) {
+        res.status(400).json({
+          message: 'rolId, permisoId y asignadoPor son requeridos',
+        });
+        return;
+      }
+
+      await RoleService.assignPermissionToRole(Number(rolId), Number(permisoId), Number(asignadoPor));
+
+      res.json({ message: 'Permiso asignado al rol correctamente' });
+    } catch (error) {
+      console.error('Error al asignar permiso al rol:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : 'Error al asignar permiso al rol',
+      });
+    }
+  };
+
 }

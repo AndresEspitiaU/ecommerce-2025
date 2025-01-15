@@ -48,12 +48,13 @@ app.use('/api/colores', colorRoutes);
 app.use('/api/cupones', cuponRoutes);
 app.use('/api/tallas', tallaRoutes);
 app.use('/api/permissions', permissionsRoutes);
+app.use('/api/roles', roleRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 
 // Ruta simple para verificar que el servidor funciona
 app.get('/api/health', (_req, res) => {
-  res.json({ 
+  res.json({
     status: 'OK',
     message: 'Servidor funcionando correctamente'
   });
@@ -64,7 +65,7 @@ app.get('/api/test-db', async (_req, res) => {
   try {
     // Intentamos hacer una consulta simple
     const result = await db.query<{ version: string }>('SELECT @@version as version');
-    
+
     res.json({
       success: true,
       message: 'Conexión a base de datos exitosa',
@@ -88,7 +89,7 @@ const startServer = async () => {
   try {
     // Intentamos conectar a la base de datos
     await connectDB();
-    
+
     // Si la conexión es exitosa, iniciamos el servidor
     app.listen(PORT, () => {
       console.log(`Conectando a la base de datos: ${process.env.DB_NAME}`);

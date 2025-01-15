@@ -38,6 +38,7 @@
     "@coreui/utils": "^2.0.2",
     "@kurkle/color": "^0.3.4",
     "@popperjs/core": "^2.11.8",
+    "@types/jwt-decode": "^3.1.0",
     "chart.js": "^4.4.7",
     "jwt-decode": "^4.0.0",
     "lodash-es": "^4.17.21",
