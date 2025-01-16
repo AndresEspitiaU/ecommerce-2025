@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "scripts": {
-    "start": "bun run src/index.ts",
+    "start": "bun run --watch src/index.ts",
     "dev": "bun --watch run src/index.ts"
   },
   "dependencies": {

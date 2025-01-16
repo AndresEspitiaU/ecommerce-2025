@@ -1,0 +1,74 @@
+<div class="container">
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2>Gestión de Categorías</h2>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label for="name" class="form-label">Nombre:</label>
+            <input
+              id="name"
+              formControlName="name"
+              type="text"
+              class="form-control"
+              [ngClass]="{'is-invalid': categoryForm.get('name')?.touched && categoryForm.get('name')?.invalid}"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Descripción:</label>
+            <textarea
+              id="description"
+              formControlName="description"
+              class="form-control"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="slug" class="form-label">Slug:</label>
+            <input
+              id="slug"
+              formControlName="slug"
+              type="text"
+              class="form-control"
+              [ngClass]="{'is-invalid': categoryForm.get('slug')?.touched && categoryForm.get('slug')?.invalid}"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="categoryForm.invalid">
+            {{ isEditing ? 'Actualizar' : 'Crear' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  
+    <div class="card mt-4">
+      <div class="card-header">
+        <h3>Lista de Categorías</h3>
+      </div>
+      <div class="card-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Slug</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let category of categories">
+              <td>{{ category.Nombre }}</td>
+              <td>{{ category.Descripcion }}</td>
+              <td>{{ category.Slug }}</td>
+              <td>
+                <button class="btn btn-warning btn-sm" (click)="onEdit(category)">Editar</button>
+                <button class="btn btn-danger btn-sm" (click)="onDelete(category.CategoriaID)">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  

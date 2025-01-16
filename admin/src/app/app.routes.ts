@@ -33,6 +33,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'categories',
+        loadChildren: () =>
+          import('./views/categories/categories.routes').then(m => m.routes),
+        canActivate: [PermissionsGuard],
+        data: {
+          permissions: ['VIEW_CATEGORIES']
+        }
+      },
+      {
         path: 'roles',
         loadChildren: () =>
           import('./views/roles/roles.routes').then((m) => m.routes),

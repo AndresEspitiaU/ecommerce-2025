@@ -27,6 +27,14 @@ export const navItems: CustomNavData[] = [
     iconComponent: { name: 'cil-lock-locked' },
     data: {
       permissions: [ 'CREATE_PERMISSION', 'ASSIGN_PERMISSION', 'EDIT_PERMISSION', 'DELETE_PERMISSION'] // Permisos requeridos para la página
+    },
+  },
+  {
+    name: 'Categories',
+    url: '/categories',
+    iconComponent: { name: 'cil-list' },
+    data: {
+      permissions: ['VIEW_CATEGORIES'] // Permiso necesario para ver Categorías
     }
   }
   

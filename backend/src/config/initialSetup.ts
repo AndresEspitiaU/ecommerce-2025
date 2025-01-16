@@ -59,7 +59,10 @@ export const permisos: PermisosConfig = {
     { nombre: "Gestionar Stock", codigo: "MANAGE_STOCK", modulo: "PRODUCTOS" }
   ],
   CATEGORIAS: [
-    { nombre: "Eliminar Categorías", codigo: "DELETE_CATEGORIES", modulo: "CATEGORIAS" }
+    { nombre: "Ver Categorías", codigo: "VIEW_CATEGORIES", modulo: "CATEGORIAS" },
+    { nombre: "Crear Categorías", codigo: "CREATE_CATEGORIES", modulo: "CATEGORIAS" },
+    { nombre: "Editar Categorías", codigo: "EDIT_CATEGORIES", modulo: "CATEGORIAS" },
+    { nombre: "Eliminar Categorías", codigo: "DELETE_CATEGORIES", modulo: "CATEGORIAS" },
   ],
   PEDIDOS: [
     { nombre: "Ver Pedidos", codigo: "READ_ORDERS", modulo: "PEDIDOS" },
@@ -88,6 +91,11 @@ export const permisos: PermisosConfig = {
   ],
   ROLES: [
     { nombre: 'Ver Permisos de Rol', codigo: 'VIEW_ROLE_PERMISSIONS', modulo: 'ROLES' },
+    { nombre: "Ver Roles", codigo: "VIEW_ROLES", modulo: "ROLES" },
+    { nombre: "Crear Roles", codigo: "CREATE_ROLES", modulo: "ROLES" },
+    { nombre: "Editar Roles", codigo: "EDIT_ROLES", modulo: "ROLES" },
+    { nombre: "Eliminar Roles", codigo: "DELETE_ROLES", modulo: "ROLES" },
+    { nombre: "Gestionar Permisos de Roles", codigo: "MANAGE_ROLE_PERMISSIONS", modulo: "ROLES" },
 
   ],
 };
@@ -164,12 +172,16 @@ export const setupRolesYPermisos = async () => {
         // Permisos de gestión de permisos
         "MANAGE_PERMISSIONS","CREATE_PERMISSION", "ASSIGN_PERMISSION", "EDIT_PERMISSION", "DELETE_PERMISSION", 
         // Roles
-        "VIEW_ROLE_PERMISSIONS"
+        "VIEW_ROLE_PERMISSIONS",
+        // Categorías
+        "VIEW_CATEGORIES", "CREATE_CATEGORIES", "EDIT_CATEGORIES", "DELETE_CATEGORIES",
       ],
       ADMIN: [
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",
         "READ_ORDERS", "CREATE_ORDERS", "UPDATE_ORDERS", "DELETE_ORDERS",
-        "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS"
+        "READ_USERS", "CREATE_USERS", "UPDATE_USERS", "DELETE_USERS",
+        // Categorías
+        "VIEW_CATEGORIES", "CREATE_CATEGORIES", "EDIT_CATEGORIES", "DELETE_CATEGORIES",
       ],
       VENDEDOR: [
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",

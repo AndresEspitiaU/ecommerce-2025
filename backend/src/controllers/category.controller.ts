@@ -38,16 +38,33 @@ export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const { name, description, slug } = req.body;
-    const success = await CategoryService.updateCategory(id, { name, description, slug });
-    if (!success) {
-      res.status(404).json({ error: "Category not found or no changes applied" });
+
+    if (!id || !name || !slug) {
+      res.status(400).json({ error: "Datos inválidos para actualizar la categoría" });
       return;
     }
-    res.status(200).json({ message: "Category updated" });
+
+    const success = await CategoryService.updateCategory(id, { name, description, slug });
+    if (!success) {
+      res.status(404).json({ error: "Categoría no encontrada o no se aplicaron cambios" });
+      return;
+    }
+
+    res.status(200).json({ message: "Categoría actualizada correctamente" });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update category" });
+    if (error instanceof Error && error.message.includes("Slug")) {
+      res.status(409).json({ error: error.message }); // Código 409: Conflicto
+    } else {
+      console.error("Error al actualizar la categoría:", error);
+      res.status(500).json({ error: "Error interno al actualizar la categoría" });
+    }
   }
 };
+
+
+
+
+
 
 export const remove = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -66,5 +83,3 @@ export const remove = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: "Error al eliminar la categoría" });
   }
 };
-
-

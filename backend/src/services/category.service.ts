@@ -28,19 +28,50 @@ export const createCategory = async (category: Category): Promise<number> => {
 };
 
 export const updateCategory = async (id: number, category: Partial<Category>): Promise<boolean> => {
-  const query = `
+  const checkSlugQuery = `
+    SELECT COUNT(*) AS count
+    FROM Categorias
+    WHERE Slug = @slug AND CategoriaID != @id AND Activo = 1
+  `;
+
+  const updateQuery = `
     UPDATE Categorias
     SET Nombre = @name, Descripcion = @description, Slug = @slug, FechaActualizacion = GETDATE()
     WHERE CategoriaID = @id AND Activo = 1
   `;
-  const result = await db.query(query, {
-    id,
-    name: category.name,
-    description: category.description,
-    slug: category.slug,
-  });
-  return result.length > 0;
+
+  try {
+    // Verificar si el Slug ya existe
+    const duplicateCheck = await db.query<{ count: number }>(checkSlugQuery, {
+      slug: category.slug,
+      id,
+    });
+
+    if (duplicateCheck[0].count > 0) {
+      throw new Error(`El Slug "${category.slug}" ya está en uso por otra categoría activa.`);
+    }
+
+    // Si no hay conflicto, procede con la actualización
+    const result = await db.query(updateQuery, {
+      id,
+      name: category.name,
+      description: category.description,
+      slug: category.slug,
+    });
+
+    return result.length > 0;
+  } catch (error) {
+    console.error("Error en el servicio updateCategory:", error);
+    if (error instanceof Error) {
+      throw new Error(error.message || "Error al actualizar la categoría");
+    } else {
+      throw new Error("Error desconocido al actualizar la categoría");
+    }
+  }
 };
+
+
+
 
 export const deleteCategory = async (id: number): Promise<boolean> => {
   const query = "UPDATE Categorias SET Activo = 0 WHERE CategoriaID = @id";
@@ -75,6 +106,3 @@ export const deleteCategory = async (id: number): Promise<boolean> => {
     throw new Error("Error eliminando la categoría");
   }
 };
-
-
-
