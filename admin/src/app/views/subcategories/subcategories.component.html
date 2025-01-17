@@ -1,0 +1,105 @@
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h2 class="mb-0">Gestión de Subcategorías</h2>
+    </div>
+    
+    <div class="card-body">
+      <!-- Formulario -->
+      <form [formGroup]="subcategoryForm" (ngSubmit)="onSubmit()" class="mb-4">
+        <div class="row g-3">
+          <!-- Categoría -->
+          <div class="col-md-4">
+            <div class="form-floating">
+              <select class="form-select" id="CategoriaID" formControlName="CategoriaID">
+                <option value="" disabled selected>Seleccione una categoría</option>
+                <option *ngFor="let category of categories" [value]="category.CategoriaID">
+                  {{ category.Nombre }}
+                </option>
+              </select>
+              <label for="CategoriaID">Categoría</label>
+            </div>
+          </div>
+          
+          <!-- Nombre -->
+          <div class="col-md-4">
+            <div class="form-floating">
+              <input
+                type="text"
+                class="form-control"
+                id="Nombre"
+                formControlName="Nombre"
+                placeholder="Nombre"
+              />
+              <label for="Nombre">Nombre</label>
+            </div>
+          </div>
+          
+          <!-- Slug -->
+          <div class="col-md-4">
+            <div class="form-floating">
+              <input
+                type="text"
+                class="form-control"
+                id="Slug"
+                formControlName="Slug"
+                placeholder="Slug"
+              />
+              <label for="Slug">Slug</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="mt-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-2"></i>
+            {{ isEditing ? 'Actualizar' : 'Crear' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">
+            <i class="bi bi-x-circle me-2"></i>
+            Cancelar
+          </button>
+        </div>
+      </form>
+
+      <!-- Tabla -->
+      <div class="table-responsive">
+        <table class="table table-hover table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>Nombre</th>
+              <th>Slug</th>
+              <th>Categoría</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let subcategory of subcategories">
+              <td>{{ subcategory.Nombre }}</td>
+              <td>{{ subcategory.Slug }}</td>
+              <td>{{ getCategoryName(subcategory.CategoriaID) }}</td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="onEdit(subcategory)" 
+                          title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="onDelete(subcategory.SubcategoriaID)"
+                          title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="subcategories.length === 0">
+              <td colspan="4" class="text-center text-muted py-3">
+                No hay subcategorías registradas
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,7 @@ import { RoleService } from '../services/role.service';
 import { db } from '@/config/database';
 
 // Definir los tipos
-type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS' | 'PERMISOS' | 'ROLES';
+type ModuloPermiso = 'PRODUCTOS' | 'PEDIDOS' | 'USUARIOS' | 'CLIENTES' | 'CATEGORIAS' | 'PERMISOS' | 'ROLES' | 'SUBCATEGORIAS';
 
 interface Permiso {
   nombre: string;
@@ -20,6 +20,7 @@ interface PermisosConfig {
   CLIENTES: Permiso[];
   PERMISOS: Permiso[];
   ROLES: Permiso[];
+  SUBCATEGORIAS: Permiso[];
 }
 
 interface RolBase {
@@ -96,8 +97,13 @@ export const permisos: PermisosConfig = {
     { nombre: "Editar Roles", codigo: "EDIT_ROLES", modulo: "ROLES" },
     { nombre: "Eliminar Roles", codigo: "DELETE_ROLES", modulo: "ROLES" },
     { nombre: "Gestionar Permisos de Roles", codigo: "MANAGE_ROLE_PERMISSIONS", modulo: "ROLES" },
-
   ],
+  SUBCATEGORIAS: [
+    { nombre: "Ver Subcategorías", codigo: "VIEW_SUBCATEGORIES", modulo: "SUBCATEGORIAS" },
+    { nombre: "Crear Subcategorías", codigo: "CREATE_SUBCATEGORIES", modulo: "SUBCATEGORIAS" },
+    { nombre: "Editar Subcategorías", codigo: "UPDATE_SUBCATEGORIES", modulo: "SUBCATEGORIAS" },
+    { nombre: "Eliminar Subcategorías", codigo: "DELETE_SUBCATEGORIES", modulo: "SUBCATEGORIAS" }
+  ]  
 };
 
 export const setupRolesYPermisos = async () => {
@@ -175,6 +181,8 @@ export const setupRolesYPermisos = async () => {
         "VIEW_ROLE_PERMISSIONS",
         // Categorías
         "VIEW_CATEGORIES", "CREATE_CATEGORIES", "EDIT_CATEGORIES", "DELETE_CATEGORIES",
+        // Subcategorías
+        "VIEW_SUBCATEGORIES", "CREATE_SUBCATEGORIES", "UPDATE_SUBCATEGORIES", "DELETE_SUBCATEGORIES"
       ],
       ADMIN: [
         "READ_PRODUCTS", "CREATE_PRODUCTS", "UPDATE_PRODUCTS", "DELETE_PRODUCTS", "MANAGE_STOCK",

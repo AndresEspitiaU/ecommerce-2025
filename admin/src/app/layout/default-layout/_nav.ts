@@ -36,6 +36,14 @@ export const navItems: CustomNavData[] = [
     data: {
       permissions: ['VIEW_CATEGORIES'] // Permiso necesario para ver Categorías
     }
+  },
+  {
+    name: 'Subcategories',
+    url: '/subcategories',
+    iconComponent: { name: 'cil-list' },
+    data: {
+      permissions: ['VIEW_SUBCATEGORIES'] // Permiso necesario para ver Subcategorías
+    }
   }
   
   

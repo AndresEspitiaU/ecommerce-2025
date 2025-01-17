@@ -42,6 +42,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'subcategories',
+        loadChildren: () =>
+          import('./views/subcategories/subcategory.routes').then(m => m.SubcategoryRoutes),
+        canActivate: [PermissionsGuard],
+        data: {
+          permissions: ['VIEW_SUBCATEGORIES']
+        }
+      },
+      {
         path: 'roles',
         loadChildren: () =>
           import('./views/roles/roles.routes').then((m) => m.routes),
