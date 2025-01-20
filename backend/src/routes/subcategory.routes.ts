@@ -18,4 +18,6 @@ router.put('/:id', SubcategoryController.update);
 // Eliminar una subcategoría
 router.delete('/:id', SubcategoryController.remove); 
 
+
+
 export default router;
